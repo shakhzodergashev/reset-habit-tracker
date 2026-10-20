@@ -1,0 +1,25 @@
+
+# Dependencies
+node_modules/
+
+# Build output and test coverage
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# Environment files: may contain secrets
+.env
+.env.*
+!.env.example
+
+# Logs
+logs/
+*.log
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
