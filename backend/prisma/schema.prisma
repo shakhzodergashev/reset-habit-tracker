@@ -1,4 +1,4 @@
-// RESET database schema. Models are added in the next step.
+// RESET database schema.
 
 generator client {
   provider     = "prisma-client"
@@ -8,4 +8,55 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  email        String   @unique @db.VarChar(254) // stored lowercase
+  passwordHash String   @db.VarChar(100)
+  timeZone     String   @default("UTC") @db.VarChar(64) // IANA name, e.g. "Asia/Tashkent"
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  habits   Habit[]
+  sessions Session[]
+}
+
+model Habit {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @db.Uuid
+  name        String   @db.VarChar(100)
+  description String?  @db.VarChar(500)
+  color       String   @db.Char(7) // "#RRGGBB"
+  startDate   DateTime @db.Date // user's local calendar date when the habit was created
+  isArchived  Boolean  @default(false)
+  createdAt   DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime @updatedAt @db.Timestamptz(3)
+
+  user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  completions HabitCompletion[]
+
+  @@index([userId, isArchived])
+}
+
+model HabitCompletion {
+  id        String   @id @default(uuid()) @db.Uuid
+  habitId   String   @db.Uuid
+  date      DateTime @db.Date // calendar date only, no time
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@unique([habitId, date]) // at most one completion per habit per day
+}
+
+model Session {
+  id        String    @id @default(uuid()) @db.Uuid
+  userId    String    @db.Uuid
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  expiresAt DateTime  @db.Timestamptz(3)
+  revokedAt DateTime? @db.Timestamptz(3) // set on logout
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
