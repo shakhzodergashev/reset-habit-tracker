@@ -73,6 +73,14 @@ export class AuthService {
     return this.startSession(user);
   }
 
+  /** Ends one session. Its token is rejected by AuthGuard from now on. */
+  async logout(sessionId: string): Promise<void> {
+    await this.prisma.session.update({
+      where: { id: sessionId },
+      data: { revokedAt: new Date() },
+    });
+  }
+
   /** Creates a session row and a signed token that points to it. */
   private async startSession(user: PublicUser) {
     const session = await this.prisma.session.create({
