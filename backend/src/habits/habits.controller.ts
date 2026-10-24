@@ -5,7 +5,6 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  ParseBoolPipe,
   ParseUUIDPipe,
   Patch,
   Post,
@@ -16,6 +15,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import type { AuthContext } from '../auth/auth.types';
 import { CurrentAuth } from '../auth/current-auth.decorator';
 import { CreateHabitDto } from './dto/create-habit.dto';
+import { ListHabitsQueryDto } from './dto/list-habits-query.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
 import { HabitsService } from './habits.service';
 
@@ -34,10 +34,9 @@ export class HabitsController {
   @Get()
   findAll(
     @CurrentAuth() auth: AuthContext,
-    @Query('archived', new ParseBoolPipe({ optional: true }))
-    archived?: boolean,
+    @Query() query: ListHabitsQueryDto,
   ) {
-    return this.habitsService.findAll(auth.userId, archived ?? false);
+    return this.habitsService.findAll(auth.userId, query.archived === 'true');
   }
 
   // GET /habits/:id -> one of the user's own habits (404 otherwise)
