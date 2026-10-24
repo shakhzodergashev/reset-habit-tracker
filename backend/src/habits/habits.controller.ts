@@ -2,7 +2,10 @@ import {
   Body,
   Controller,
   Get,
+  Param,
   ParseBoolPipe,
+  ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -11,6 +14,7 @@ import { AuthGuard } from '../auth/auth.guard';
 import type { AuthContext } from '../auth/auth.types';
 import { CurrentAuth } from '../auth/current-auth.decorator';
 import { CreateHabitDto } from './dto/create-habit.dto';
+import { UpdateHabitDto } from './dto/update-habit.dto';
 import { HabitsService } from './habits.service';
 
 @Controller('habits')
@@ -32,5 +36,24 @@ export class HabitsController {
     archived?: boolean,
   ) {
     return this.habitsService.findAll(auth.userId, archived ?? false);
+  }
+
+  // GET /habits/:id -> one of the user's own habits (404 otherwise)
+  @Get(':id')
+  findOne(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.habitsService.findOne(auth.userId, id);
+  }
+
+  // PATCH /habits/:id -> change name, description and/or color
+  @Patch(':id')
+  update(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateHabitDto,
+  ) {
+    return this.habitsService.update(auth.userId, id, dto);
   }
 }
