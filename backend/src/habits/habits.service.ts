@@ -66,6 +66,30 @@ export class HabitsService {
     return toHabitResponse(habit);
   }
 
+  /** Hides the habit from the active list. Its history is kept. */
+  archive(userId: string, habitId: string) {
+    return this.setArchived(userId, habitId, true);
+  }
+
+  /** Puts an archived habit back in the active list, with its history. */
+  restore(userId: string, habitId: string) {
+    return this.setArchived(userId, habitId, false);
+  }
+
+  private async setArchived(
+    userId: string,
+    habitId: string,
+    isArchived: boolean,
+  ) {
+    await this.findOwnedHabit(userId, habitId);
+
+    const habit = await this.prisma.habit.update({
+      where: { id: habitId },
+      data: { isArchived },
+    });
+    return toHabitResponse(habit);
+  }
+
   /**
    * Finds a habit only if it belongs to this user.
    * Someone else's habit gets the same 404 as a missing one,

@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseBoolPipe,
   ParseUUIDPipe,
@@ -55,5 +57,25 @@ export class HabitsController {
     @Body() dto: UpdateHabitDto,
   ) {
     return this.habitsService.update(auth.userId, id, dto);
+  }
+
+  // POST /habits/:id/archive -> 200 with the habit, now archived
+  @Post(':id/archive')
+  @HttpCode(HttpStatus.OK)
+  archive(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.habitsService.archive(auth.userId, id);
+  }
+
+  // POST /habits/:id/restore -> 200 with the habit, active again
+  @Post(':id/restore')
+  @HttpCode(HttpStatus.OK)
+  restore(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.habitsService.restore(auth.userId, id);
   }
 }
