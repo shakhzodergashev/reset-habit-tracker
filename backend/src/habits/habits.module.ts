@@ -7,5 +7,6 @@ import { HabitsService } from './habits.service';
   imports: [AuthModule], // provides JwtService, which AuthGuard needs
   controllers: [HabitsController],
   providers: [HabitsService],
+  exports: [HabitsService], // completions reuse findOwnedHabit
 })
 export class HabitsModule {}
