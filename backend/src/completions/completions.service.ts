@@ -15,6 +15,36 @@ export class CompletionsService {
     private readonly habits: HabitsService,
   ) {}
 
+  /**
+   * The days this habit was done, oldest first, as "YYYY-MM-DD" text.
+   * Works for archived habits too: archiving blocks changes, not reading.
+   */
+  async list(
+    userId: string,
+    habitId: string,
+    range: { from?: string; to?: string },
+  ) {
+    await this.habits.findOwnedHabit(userId, habitId);
+
+    if (range.from && range.to && range.from > range.to) {
+      throw new BadRequestException('from must be on or before to');
+    }
+
+    const rows = await this.prisma.habitCompletion.findMany({
+      where: {
+        habitId,
+        // undefined = no limit on that side
+        date: {
+          gte: range.from ? toDbDate(range.from) : undefined,
+          lte: range.to ? toDbDate(range.to) : undefined,
+        },
+      },
+      orderBy: { date: 'asc' },
+      select: { date: true },
+    });
+    return rows.map((row) => fromDbDate(row.date));
+  }
+
   /** Marks the habit as done on `date`. Doing it twice is harmless. */
   async mark(userId: string, habitId: string, date: string) {
     const habit = await this.findChangeableHabit(userId, habitId);
