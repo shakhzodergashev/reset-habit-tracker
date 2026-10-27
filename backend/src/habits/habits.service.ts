@@ -56,8 +56,12 @@ export class HabitsService {
     return toHabitResponse(habit, today);
   }
 
-  async findAll(userId: string, archived: boolean) {
-    const today = await this.todayFor(userId);
+  /**
+   * The user's habits, oldest first. `today` can be passed in by callers that
+   * already know it (the dashboard), so every number uses the same day.
+   */
+  async findAll(userId: string, archived: boolean, today?: string) {
+    today ??= await this.todayFor(userId);
     const habits = await this.prisma.habit.findMany({
       // userId in the filter = only this user's habits, never anyone else's.
       where: { userId, isArchived: archived },
