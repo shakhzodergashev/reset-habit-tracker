@@ -3,7 +3,7 @@ import {
   ConflictException,
   Injectable,
 } from '@nestjs/common';
-import { fromDbDate, toDbDate, todayInTimeZone } from '../common/dates/dates';
+import { fromDbDate, toDbDate } from '../common/dates/dates';
 import { Habit, Prisma } from '../generated/prisma/client';
 import { HabitsService } from '../habits/habits.service';
 import { PrismaService } from '../prisma/prisma.service';
@@ -50,7 +50,7 @@ export class CompletionsService {
     const habit = await this.findChangeableHabit(userId, habitId);
 
     // "YYYY-MM-DD" text sorts like a date, so plain < and > comparisons work.
-    const today = await this.todayFor(userId);
+    const today = await this.habits.todayFor(userId);
     if (date > today) {
       throw new BadRequestException('date cannot be in the future');
     }
@@ -98,13 +98,5 @@ export class CompletionsService {
       );
     }
     return habit;
-  }
-
-  private async todayFor(userId: string): Promise<string> {
-    const user = await this.prisma.user.findUniqueOrThrow({
-      where: { id: userId },
-      select: { timeZone: true },
-    });
-    return todayInTimeZone(user.timeZone);
   }
 }
