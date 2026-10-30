@@ -1,19 +1,16 @@
 import { useState, type FormEvent } from 'react';
-import { login, register, type User } from '../api/auth';
+import { Link, useNavigate } from 'react-router';
 import { ApiError } from '../api/client';
+import { useAuth } from '../auth/auth-context';
 import './AuthForm.css';
 
 export type AuthMode = 'login' | 'register';
 
-// Props = the inputs this component receives from its parent.
-interface AuthFormProps {
-  mode: AuthMode;
-  onSuccess: (user: User) => void; // called with the user after a successful login/register
-  onSwitchMode: () => void; // called when "Create an account" / "Log in" is clicked
-}
-
 /** One form for both logging in and registering, depending on `mode`. */
-export function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProps) {
+export function AuthForm({ mode }: { mode: AuthMode }) {
+  const auth = useAuth(); // read login/register from the notice board
+  const navigate = useNavigate(); // lets code move to another page
+
   // State: values React remembers between redraws. Changing them redraws the form.
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -29,17 +26,18 @@ export function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProps) {
     setIsSubmitting(true);
 
     try {
-      const user = isRegister
-        ? await register(email, password)
-        : await login(email, password);
-      onSuccess(user);
+      if (isRegister) {
+        await auth.register(email, password);
+      } else {
+        await auth.login(email, password);
+      }
+      navigate('/', { replace: true }); // go to the home page
     } catch (err) {
       setError(
         err instanceof ApiError
           ? err.message
           : 'Something went wrong. Please try again.',
       );
-    } finally {
       setIsSubmitting(false);
     }
   }
@@ -81,15 +79,24 @@ export function AuthForm({ mode, onSuccess, onSwitchMode }: AuthFormProps) {
         </p>
       )}
 
-      <button className="button button-primary" type="submit" disabled={isSubmitting}>
-        {isSubmitting ? 'Please wait…' : isRegister ? 'Create account' : 'Log in'}
+      <button
+        className="button button-primary"
+        type="submit"
+        disabled={isSubmitting}
+      >
+        {isSubmitting
+          ? 'Please wait…'
+          : isRegister
+            ? 'Create account'
+            : 'Log in'}
       </button>
 
       <p className="auth-switch">
-        {isRegister ? 'Already have an account?' : 'New to RESET?'}{' '}
-        <button className="button-link" type="button" onClick={onSwitchMode}>
+        {isRegister ? 'Already have an account? ' : 'New to RESET? '}
+        {/* <Link> changes the page without reloading the browser. */}
+        <Link to={isRegister ? '/login' : '/register'}>
           {isRegister ? 'Log in' : 'Create an account'}
-        </button>
+        </Link>
       </p>
     </form>
   );

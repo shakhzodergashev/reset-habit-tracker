@@ -1,18 +1,10 @@
-import { useState } from 'react';
-import { logout, type User } from './api/auth';
-import { AuthForm, type AuthMode } from './components/AuthForm';
+import { Navigate, Route, Routes } from 'react-router';
+import { RequireAuth } from './auth/RequireAuth';
+import { AuthPage } from './pages/AuthPage';
+import { HomePage } from './pages/HomePage';
 import './App.css';
 
 function App() {
-  // Who is logged in (null = nobody), and which form to show.
-  const [user, setUser] = useState<User | null>(null);
-  const [mode, setMode] = useState<AuthMode>('login');
-
-  async function handleLogout() {
-    await logout();
-    setUser(null);
-  }
-
   return (
     <main className="app">
       <header className="app-header">
@@ -20,26 +12,21 @@ function App() {
         <p className="app-tagline">Build better days. One habit at a time.</p>
       </header>
 
-      {/* Show the welcome card when logged in, otherwise the form. */}
-      {user ? (
-        <section className="card welcome">
-          <h2>Welcome, {user.email}</h2>
-          <p>Your time zone: {user.timeZone}</p>
-          <button
-            className="button button-secondary"
-            type="button"
-            onClick={handleLogout}
-          >
-            Log out
-          </button>
-        </section>
-      ) : (
-        <AuthForm
-          mode={mode}
-          onSuccess={setUser}
-          onSwitchMode={() => setMode(mode === 'login' ? 'register' : 'login')}
+      {/* Shows the one page that matches the address in the browser. */}
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <HomePage />
+            </RequireAuth>
+          }
         />
-      )}
+        <Route path="/login" element={<AuthPage mode="login" />} />
+        <Route path="/register" element={<AuthPage mode="register" />} />
+        {/* Any other address: go home (which sends you to /login if needed). */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
     </main>
   );
 }

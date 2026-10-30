@@ -31,3 +31,8 @@
 .welcome p {
   color: var(--color-text-muted);
 }
+
+.status-message {
+  color: var(--color-text-muted);
+  text-align: center;
+}
