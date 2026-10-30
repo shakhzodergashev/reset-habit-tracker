@@ -27,6 +27,16 @@ export function setToken(token: string | null): void {
   }
 }
 
+// ---------- "your session has ended" ----------
+// AuthProvider registers a function here. apiRequest calls it when the backend
+// answers 401: the saved login is no longer valid.
+
+let sessionEndedHandler: (() => void) | null = null;
+
+export function onSessionEnded(handler: (() => void) | null): void {
+  sessionEndedHandler = handler;
+}
+
 // ---------- errors ----------
 
 /** A failed request, with the HTTP status and a message ready to show the user. */
@@ -94,6 +104,14 @@ export async function apiRequest<T>(
   // 204 No Content (e.g. logout) has no body to read.
   if (response.status === 204) {
     return undefined as T;
+  }
+
+  // 401 = the backend no longer accepts our login (expired, logged out in another tab
+  // or device). The one exception is the login request itself, where 401 just means
+  // "wrong email or password".
+  if (response.status === 401 && path !== '/auth/login') {
+    setToken(null);
+    sessionEndedHandler?.();
   }
 
   const body: unknown = await response.json().catch(() => null);

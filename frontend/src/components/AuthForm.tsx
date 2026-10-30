@@ -46,6 +46,12 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
     <form className="card auth-form" onSubmit={handleSubmit}>
       <h2>{isRegister ? 'Create your account' : 'Log in'}</h2>
 
+      {!isRegister && auth.sessionEnded && (
+        <p className="form-notice" role="status">
+          Your session has ended. Please log in again.
+        </p>
+      )}
+
       <label className="field">
         <span>Email</span>
         {/* A "controlled" input: its value comes from state, and typing updates the state. */}

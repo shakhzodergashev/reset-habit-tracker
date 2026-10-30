@@ -5,6 +5,7 @@ import type { User } from '../api/auth';
 export interface AuthContextValue {
   user: User | null; // null = nobody is logged in
   isChecking: boolean; // true while the saved token is being checked on page load
+  sessionEnded: boolean; // true if the backend ended the login while the app was open
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;

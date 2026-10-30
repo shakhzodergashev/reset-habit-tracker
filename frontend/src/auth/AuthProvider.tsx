@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import * as authApi from '../api/auth';
-import { getToken, setToken } from '../api/client';
+import { getToken, onSessionEnded, setToken } from '../api/client';
 import { AuthContext } from './auth-context';
 
 /** Keeps track of who is logged in and shares it with every component inside it. */
@@ -8,6 +8,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<authApi.User | null>(null);
   // If a token was saved, we don't know yet whether it still works.
   const [isChecking, setIsChecking] = useState(() => getToken() !== null);
+  // True when the backend refused our login while the app was open (expired / logged out elsewhere).
+  const [sessionEnded, setSessionEnded] = useState(false);
 
   // Runs once, after the app first appears: check the saved token with GET /me.
   useEffect(() => {
@@ -21,18 +23,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsChecking(false));
   }, []); // [] = run only once, not on every redraw
 
+  // Listen for "your session has ended" from apiRequest. RequireAuth then sends the user to /login.
+  useEffect(() => {
+    onSessionEnded(() => {
+      setUser(null);
+      setSessionEnded(true);
+    });
+    // Cleanup: stop listening if this provider ever goes away.
+    return () => onSessionEnded(null);
+  }, []);
+
   const value = {
     user,
     isChecking,
+    sessionEnded,
     login: async (email: string, password: string) => {
       setUser(await authApi.login(email, password));
+      setSessionEnded(false);
     },
     register: async (email: string, password: string) => {
       setUser(await authApi.register(email, password));
+      setSessionEnded(false);
     },
     logout: async () => {
-      await authApi.logout();
+      try {
+        await authApi.logout();
+      } catch {
+        // Server down or session already gone: the token is forgotten anyway.
+      }
       setUser(null);
+      setSessionEnded(false);
     },
   };
 
