@@ -19,6 +19,7 @@ RESET is a daily habit tracker. You create habits, tick them off each day, and k
 | Backend | NestJS 11, TypeScript, class-validator, bcrypt, JWT |
 | Database | PostgreSQL (developed on 18) with Prisma 7.10.1 |
 | Frontend | React 19, TypeScript, Vite 8, React Router 8, plain CSS |
+| Mobile | React Native 0.88, Expo SDK 58, Expo Router, tested with Expo Go on iPhone |
 | Tests | Jest and Supertest (unit and end-to-end) |
 
 ## Prerequisites
@@ -109,6 +110,32 @@ npm run dev                   # app on http://localhost:5173
 
 Open **http://localhost:5173** and create an account. In development, Vite forwards every request starting with `/api` to the backend (see `frontend/vite.config.ts`), so no CORS setup is needed.
 
+## Mobile app (iPhone)
+
+`mobile/` is a React Native app built with Expo (SDK 58) and Expo Router. It has the same features as the website and talks to the same backend, so everything stays in sync between the phone and the website.
+
+To try it on your iPhone with the free **Expo Go** app (no Mac needed):
+
+1. Your iPhone and computer must be on the **same Wi-Fi**, and the backend must be running (`npm run start:dev` in `backend/`).
+2. Create the settings file and put your computer's Wi-Fi address in it (find it with `ipconfig` on Windows):
+
+   ```bash
+   cd mobile
+   npm install
+   cp .env.example .env          # PowerShell: Copy-Item .env.example .env
+   # then edit .env, e.g. EXPO_PUBLIC_API_URL=http://192.168.1.10:3000
+   ```
+
+3. Start it and scan the QR code with the iPhone Camera:
+
+   ```bash
+   npx expo start
+   ```
+
+If Windows asks whether Node.js may use the network, allow it on **private networks**. Checks: `npx tsc --noEmit` and `npx expo-doctor`.
+
+The phone keeps its login in the iPhone Keychain (`expo-secure-store`). Using the app away from home needs the backend deployed to the internet, which is not set up yet.
+
 ## Testing and checks
 
 ```bash
@@ -142,13 +169,20 @@ reset-habit-tracker/
 │  │  ├─ common/dates/ time-zone-safe date helpers
 │  │  └─ prisma/       database connection
 │  └─ test/            end-to-end tests
-└─ frontend/
+├─ frontend/
+│  └─ src/
+│     ├─ api/          fetch client and one file per backend area
+│     ├─ auth/         login state (context), route guard
+│     ├─ components/   habit card, forms, 14-day grid
+│     ├─ pages/        dashboard, login/register, new/edit/archived habits
+│     └─ utils/        date formatting
+└─ mobile/
    └─ src/
-      ├─ api/          fetch client and one file per backend area
-      ├─ auth/         login state (context), route guard
-      ├─ components/   habit card, forms, 14-day grid
-      ├─ pages/        dashboard, login/register, new/edit/archived habits
-      └─ utils/        date formatting
+      ├─ app/          screens (each file is a screen, Expo Router)
+      ├─ api/          API client (token in the iPhone Keychain)
+      ├─ auth/         login state
+      ├─ components/   habit card, form, 14-day grid, shared UI
+      └─ utils/        date helpers
 ```
 
 ## API
