@@ -2,6 +2,7 @@ import { Navigate, Route, Routes } from 'react-router';
 import { RequireAuth } from './auth/RequireAuth';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
+import { EditHabitPage } from './pages/EditHabitPage';
 import { NewHabitPage } from './pages/NewHabitPage';
 import './App.css';
 
@@ -19,6 +20,7 @@ function App() {
         <Route element={<RequireAuth />}>
           <Route path="/" element={<DashboardPage />} />
           <Route path="/habits/new" element={<NewHabitPage />} />
+          <Route path="/habits/:id/edit" element={<EditHabitPage />} />
         </Route>
 
         <Route path="/login" element={<AuthPage mode="login" />} />

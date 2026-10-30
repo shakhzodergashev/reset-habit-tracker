@@ -12,3 +12,11 @@ export interface HabitInput {
 export function createHabit(input: HabitInput): Promise<Habit> {
   return apiRequest<Habit>('/habits', { method: 'POST', body: input });
 }
+
+export function getHabit(id: string): Promise<Habit> {
+  return apiRequest<Habit>(`/habits/${id}`);
+}
+
+export function updateHabit(id: string, input: HabitInput): Promise<Habit> {
+  return apiRequest<Habit>(`/habits/${id}`, { method: 'PATCH', body: input });
+}
