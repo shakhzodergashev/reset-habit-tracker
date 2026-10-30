@@ -122,6 +122,10 @@ export function DashboardPage() {
               ))}
             </ul>
           )}
+
+          <Link className="dashboard-archived-link" to="/habits/archived">
+            Archived habits
+          </Link>
         </>
       )}
     </div>

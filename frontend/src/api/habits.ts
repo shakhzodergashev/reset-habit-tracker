@@ -20,3 +20,18 @@ export function getHabit(id: string): Promise<Habit> {
 export function updateHabit(id: string, input: HabitInput): Promise<Habit> {
   return apiRequest<Habit>(`/habits/${id}`, { method: 'PATCH', body: input });
 }
+
+/** Active habits, or archived ones with archived = true. Oldest first. */
+export function listHabits(archived: boolean): Promise<Habit[]> {
+  return apiRequest<Habit[]>(`/habits?archived=${archived}`);
+}
+
+/** Hides the habit from the dashboard. Its history is kept. */
+export function archiveHabit(id: string): Promise<Habit> {
+  return apiRequest<Habit>(`/habits/${id}/archive`, { method: 'POST' });
+}
+
+/** Brings an archived habit back, with its history. */
+export function restoreHabit(id: string): Promise<Habit> {
+  return apiRequest<Habit>(`/habits/${id}/restore`, { method: 'POST' });
+}

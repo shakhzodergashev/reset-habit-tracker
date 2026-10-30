@@ -112,6 +112,23 @@ textarea {
   background: var(--color-surface-muted);
 }
 
+.button-danger {
+  background: var(--color-danger);
+  color: #ffffff;
+}
+
+.button-danger:hover:not(:disabled) {
+  filter: brightness(0.92);
+}
+
+/* Shared row of buttons at the bottom of forms and cards. */
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
 /* Looks like a link, behaves like a button. */
 .button-link {
   padding: 0;

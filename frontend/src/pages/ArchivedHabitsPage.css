@@ -1,0 +1,36 @@
+.archived-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.archived-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.archived-header a {
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.archived-item {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+}
+
+.archived-color {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+}
+
+.archived-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}

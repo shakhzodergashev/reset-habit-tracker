@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import type { Habit } from '../api/dashboard';
-import { getHabit, updateHabit } from '../api/habits';
+import { archiveHabit, getHabit, updateHabit } from '../api/habits';
+import { ArchiveHabitCard } from '../components/ArchiveHabitCard';
 import { HabitForm } from '../components/HabitForm';
 
 /** /habits/:id/edit: change a habit's name, description or color. */
@@ -49,20 +50,33 @@ export function EditHabitPage() {
   }
 
   return (
-    <HabitForm
-      title="Edit habit"
-      submitLabel="Save changes"
-      // Pre-fill the form with the habit's current values.
-      initialValues={{
-        name: habit.name,
-        description: habit.description,
-        color: habit.color,
-      }}
-      onSubmit={async (values) => {
-        await updateHabit(habit.id, values);
-        navigate('/');
-      }}
-      onCancel={() => navigate('/')}
-    />
+    // <> … </> is a "fragment": it groups two siblings without adding an extra element.
+    <>
+      <HabitForm
+        title="Edit habit"
+        submitLabel="Save changes"
+        // Pre-fill the form with the habit's current values.
+        initialValues={{
+          name: habit.name,
+          description: habit.description,
+          color: habit.color,
+        }}
+        onSubmit={async (values) => {
+          await updateHabit(habit.id, values);
+          navigate('/');
+        }}
+        onCancel={() => navigate('/')}
+      />
+
+      {!habit.isArchived && (
+        <ArchiveHabitCard
+          habitName={habit.name}
+          onArchive={async () => {
+            await archiveHabit(habit.id);
+            navigate('/');
+          }}
+        />
+      )}
+    </>
   );
 }
