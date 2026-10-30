@@ -1,0 +1,78 @@
+.recent-days {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.recent-days-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.recent-days-streak {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.recent-days-note {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+/* Two rows of seven days. */
+.day-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.day {
+  width: 100%;
+  aspect-ratio: 1;
+  max-width: 100%;
+  display: grid;
+  place-content: center;
+  gap: 0;
+  border: 2px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-bg);
+  cursor: pointer;
+  line-height: 1.1;
+}
+
+.day-weekday {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+}
+
+.day-number {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Done: filled with the habit's color (set inline), white text. */
+.day[aria-pressed='true'] {
+  color: #ffffff;
+}
+
+.day.is-today {
+  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
+}
+
+.day:disabled {
+  cursor: default;
+}
+
+/* Before the habit started (or archived): greyed out. */
+.day:disabled:not([aria-pressed='true']) {
+  background: var(--color-surface-muted);
+  color: var(--color-text-muted);
+  opacity: 0.6;
+}

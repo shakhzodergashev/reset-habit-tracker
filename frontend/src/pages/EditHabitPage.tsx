@@ -3,14 +3,18 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import type { Habit } from '../api/dashboard';
 import { archiveHabit, getHabit, updateHabit } from '../api/habits';
+import { useAuth } from '../auth/auth-context';
 import { ArchiveHabitCard } from '../components/ArchiveHabitCard';
 import { HabitForm } from '../components/HabitForm';
+import { RecentDays } from '../components/RecentDays';
+import { todayInTimeZone } from '../utils/dates';
 
 /** /habits/:id/edit: change a habit's name, description or color. */
 export function EditHabitPage() {
   // useParams reads the :id part of the address, e.g. /habits/36bc.../edit
   const { id = '' } = useParams();
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [habit, setHabit] = useState<Habit | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,12 +49,24 @@ export function EditHabitPage() {
       </section>
     );
   }
-  if (!habit) {
+  if (!habit || !user) {
     return <p className="status-message">Loading…</p>;
   }
 
+  // Today in the user's own time zone (the backend double-checks every date).
+  const today = todayInTimeZone(user.timeZone);
+
+  // After a day is marked or undone, reload the habit so its streak is up to date.
+  function reloadHabit() {
+    getHabit(id)
+      .then(setHabit)
+      .catch(() => {
+        // Keep showing the old streak; the next page load will correct it.
+      });
+  }
+
   return (
-    // <> … </> is a "fragment": it groups two siblings without adding an extra element.
+    // <> … </> is a "fragment": it groups siblings without adding an extra element.
     <>
       <HabitForm
         title="Edit habit"
@@ -67,6 +83,8 @@ export function EditHabitPage() {
         }}
         onCancel={() => navigate('/')}
       />
+
+      <RecentDays habit={habit} today={today} onChanged={reloadHabit} />
 
       {!habit.isArchived && (
         <ArchiveHabitCard
