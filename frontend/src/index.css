@@ -78,6 +78,49 @@ textarea {
   outline-offset: 2px;
 }
 
+/* Buttons used across the app. */
+.button {
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid transparent;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.button-primary {
+  background: var(--color-accent);
+  color: #ffffff;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--color-accent-hover);
+}
+
+.button-secondary {
+  background: var(--color-bg);
+  border-color: var(--color-border);
+}
+
+.button-secondary:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+/* Looks like a link, behaves like a button. */
+.button-link {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
 /* The simple card used across the app. */
 .card {
   background: var(--color-bg);

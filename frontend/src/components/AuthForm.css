@@ -1,0 +1,44 @@
+.auth-form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field > span {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.field input {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg);
+}
+
+.field input:focus {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.field small {
+  color: var(--color-text-muted);
+}
+
+.form-error {
+  padding: var(--space-3);
+  border-radius: 8px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+.auth-switch {
+  color: var(--color-text-muted);
+  text-align: center;
+}
