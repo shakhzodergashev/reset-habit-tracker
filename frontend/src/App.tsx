@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { RequireAuth } from './auth/RequireAuth';
 import { AuthPage } from './pages/AuthPage';
-import { HomePage } from './pages/HomePage';
+import { DashboardPage } from './pages/DashboardPage';
 import './App.css';
 
 function App() {
@@ -18,7 +18,7 @@ function App() {
           path="/"
           element={
             <RequireAuth>
-              <HomePage />
+              <DashboardPage />
             </RequireAuth>
           }
         />

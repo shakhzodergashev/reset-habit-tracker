@@ -1,0 +1,40 @@
+.dashboard {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.dashboard-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.dashboard-user {
+  color: var(--color-text-muted);
+  overflow-wrap: anywhere;
+}
+
+.dashboard-summary {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.dashboard-summary p {
+  color: var(--color-text-muted);
+}
+
+.dashboard-summary strong {
+  color: var(--color-accent);
+  font-size: 1.15rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.habit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
