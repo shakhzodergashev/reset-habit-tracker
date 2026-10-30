@@ -17,6 +17,14 @@
 }
 
 .dashboard-summary {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+.dashboard-summary > div {
   display: grid;
   gap: var(--space-1);
 }

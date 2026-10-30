@@ -80,6 +80,8 @@ textarea {
 
 /* Buttons used across the app. */
 .button {
+  display: inline-block; /* also used on links (<Link className="button">) */
+  text-decoration: none;
   padding: var(--space-3) var(--space-4);
   border: 1px solid transparent;
   border-radius: 8px;
@@ -119,6 +121,55 @@ textarea {
   font-weight: 600;
   cursor: pointer;
   text-decoration: underline;
+}
+
+/* Form fields used by every form: a label above its input. */
+.field {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.field > span {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  background: var(--color-bg);
+}
+
+.field input:focus,
+.field textarea:focus {
+  border-color: var(--color-accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--color-accent-soft);
+}
+
+.field small {
+  font-weight: 400;
+  color: var(--color-text-muted);
+}
+
+.form-error {
+  padding: var(--space-3);
+  border-radius: 8px;
+  background: var(--color-danger-soft);
+  color: var(--color-danger);
+}
+
+/* Hidden on screen, still read by screen readers. */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 /* The simple card used across the app. */

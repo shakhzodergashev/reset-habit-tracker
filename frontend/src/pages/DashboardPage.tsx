@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { Link } from 'react-router';
 import { ApiError } from '../api/client';
 import { markDone, undoDone } from '../api/completions';
 import { getDashboard, type Dashboard, type Habit } from '../api/dashboard';
@@ -82,13 +83,18 @@ export function DashboardPage() {
       ) : (
         <>
           <section className="dashboard-summary">
-            <h2>{formatLongDate(dashboard.today)}</h2>
-            <p>
-              <strong>
-                {dashboard.completedCount} / {dashboard.totalCount}
-              </strong>{' '}
-              completed
-            </p>
+            <div>
+              <h2>{formatLongDate(dashboard.today)}</h2>
+              <p>
+                <strong>
+                  {dashboard.completedCount} / {dashboard.totalCount}
+                </strong>{' '}
+                completed
+              </p>
+            </div>
+            <Link className="button button-primary" to="/habits/new">
+              + New habit
+            </Link>
           </section>
 
           {actionError && (
@@ -100,7 +106,7 @@ export function DashboardPage() {
           {dashboard.habits.length === 0 ? (
             <section className="card welcome">
               <h2>No habits yet</h2>
-              <p>Creating habits arrives in the next milestone.</p>
+              <p>Tap “+ New habit” to create your first one.</p>
             </section>
           ) : (
             <ul className="habit-list">

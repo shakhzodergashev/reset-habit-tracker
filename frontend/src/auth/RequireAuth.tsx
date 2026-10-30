@@ -1,12 +1,12 @@
-import type { ReactNode } from 'react';
-import { Navigate } from 'react-router';
+import { Navigate, Outlet } from 'react-router';
 import { useAuth } from './auth-context';
 
 /**
- * Shows its children only to logged-in users; everyone else is sent to /login.
+ * Guards a group of pages: logged-in users see the page, everyone else is sent to /login.
+ * <Outlet /> is where the matching child page (dashboard, new habit…) appears.
  * This is for a nice experience only. The real protection is the backend's AuthGuard.
  */
-export function RequireAuth({ children }: { children: ReactNode }) {
+export function RequireAuth() {
   const { user, isChecking } = useAuth();
 
   if (isChecking) {
@@ -15,5 +15,5 @@ export function RequireAuth({ children }: { children: ReactNode }) {
   if (!user) {
     return <Navigate to="/login" replace />;
   }
-  return children;
+  return <Outlet />;
 }
