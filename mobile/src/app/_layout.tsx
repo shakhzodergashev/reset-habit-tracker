@@ -1,27 +1,32 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { AuthProvider } from '@/auth/AuthProvider';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 
 /**
  * The frame around every screen. Expo Router turns each file in src/app into a screen;
  * <Stack> shows them as a stack of cards with a top bar and the iPhone back swipe.
  */
 export default function RootLayout() {
+  const c = useTheme();
+
   return (
     <AuthProvider>
-      <StatusBar style="dark" />
+      {/* "auto" = dark status bar text in light mode, light text in dark mode. */}
+      <StatusBar style="auto" />
       <Stack
         screenOptions={{
-          headerTintColor: colors.accent,
-          headerTitleStyle: { color: colors.text, fontWeight: '700' },
-          contentStyle: { backgroundColor: colors.bg },
+          headerTintColor: c.accent,
+          headerStyle: { backgroundColor: c.bg },
+          headerTitleStyle: { color: c.text, fontWeight: '700' },
+          contentStyle: { backgroundColor: c.bg },
         }}
       >
-        <Stack.Screen name="index" options={{ title: 'RESET' }} />
+        {/* The three tabs (Today, Stats, Profile) draw their own headers. */}
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ title: 'RESET', headerBackVisible: false }} />
         <Stack.Screen name="habits/new" options={{ title: 'New habit', presentation: 'modal' }} />
-        <Stack.Screen name="habits/[id]" options={{ title: 'Edit habit' }} />
+        <Stack.Screen name="habits/[id]" options={{ title: 'Habit' }} />
         <Stack.Screen name="archived" options={{ title: 'Archived habits' }} />
       </Stack>
     </AuthProvider>

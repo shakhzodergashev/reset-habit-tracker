@@ -1,5 +1,5 @@
-import { Pressable, StyleSheet, Text } from 'react-native';
-import { colors, space } from '../theme';
+import { Pressable, Text } from 'react-native';
+import { space, useTheme } from '../theme';
 
 interface ButtonProps {
   title: string;
@@ -10,6 +10,12 @@ interface ButtonProps {
 
 /** RESET's button. Pressable is React Native's "something you can tap". */
 export function Button({ title, onPress, variant = 'primary', disabled }: ButtonProps) {
+  const c = useTheme();
+  const background =
+    variant === 'primary' ? c.accent : variant === 'danger' ? c.danger : c.surface;
+  const textColor =
+    variant === 'secondary' ? c.text : variant === 'primary' ? c.onAccent : '#ffffff';
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -17,33 +23,18 @@ export function Button({ title, onPress, variant = 'primary', disabled }: Button
       onPress={onPress}
       disabled={disabled}
       // style can be a function: `pressed` is true while the finger is down.
-      style={({ pressed }) => [
-        styles.base,
-        styles[variant],
-        (pressed || disabled) && styles.dimmed,
-      ]}
+      style={({ pressed }) => ({
+        paddingVertical: space[3] + 2,
+        paddingHorizontal: space[4],
+        borderRadius: 12,
+        alignItems: 'center',
+        backgroundColor: background,
+        borderWidth: 1,
+        borderColor: variant === 'secondary' ? c.border : 'transparent',
+        opacity: pressed || disabled ? 0.6 : 1,
+      })}
     >
-      <Text style={[styles.text, variant === 'secondary' && styles.secondaryText]}>
-        {title}
-      </Text>
+      <Text style={{ color: textColor, fontWeight: '700', fontSize: 16 }}>{title}</Text>
     </Pressable>
   );
 }
-
-// In React Native, styles are JavaScript objects (no CSS files).
-const styles = StyleSheet.create({
-  base: {
-    paddingVertical: space[3],
-    paddingHorizontal: space[4],
-    borderRadius: 10,
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'transparent',
-  },
-  primary: { backgroundColor: colors.accent },
-  secondary: { backgroundColor: colors.bg, borderColor: colors.border },
-  danger: { backgroundColor: colors.danger },
-  dimmed: { opacity: 0.6 },
-  text: { color: colors.white, fontWeight: '700', fontSize: 16 },
-  secondaryText: { color: colors.text },
-});

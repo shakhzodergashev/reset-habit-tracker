@@ -1,97 +1,102 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { Pressable, Text, View } from 'react-native';
 import type { Habit } from '../api/habits';
-import { colors, radius, space } from '../theme';
+import { radius, space, useTheme } from '../theme';
+import { HabitEmoji } from './HabitEmoji';
 
 interface HabitCardProps {
   habit: Habit;
-  onToggle: () => void; // tap = mark done, or undo if already done
-  onEdit: () => void;
+  onToggle: () => void; // the circle on the right: mark done, or undo
+  onOpen: () => void; // the rest of the row: open the habit
   isPending: boolean;
 }
 
-/** One habit on the dashboard: a big "done today" area plus an Edit button. */
-export function HabitCard({ habit, onToggle, onEdit, isPending }: HabitCardProps) {
+/** One habit row: emoji tile, name and streak, and a big tick circle on the right. */
+export function HabitCard({ habit, onToggle, onOpen, isPending }: HabitCardProps) {
+  const c = useTheme();
   const done = habit.completedToday;
 
   return (
-    <View style={[styles.card, done && styles.cardDone]}>
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.border,
+        borderRadius: radius,
+        overflow: 'hidden',
+      }}
+    >
+      {/* Tap the row: open the habit (edit, past days, archive). */}
       <Pressable
-        style={({ pressed }) => [styles.toggle, (pressed || isPending) && styles.pressed]}
+        onPress={onOpen}
+        accessibilityRole="button"
+        accessibilityLabel={`${habit.name}, ${habit.currentStreak}-day streak`}
+        accessibilityHint="Opens the habit"
+        style={({ pressed }) => ({
+          flex: 1,
+          flexDirection: 'row',
+          alignItems: 'center',
+          gap: space[3],
+          padding: space[3],
+          opacity: pressed ? 0.6 : 1,
+        })}
+      >
+        <HabitEmoji emoji={habit.emoji} name={habit.name} />
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text
+            style={{
+              fontSize: 17,
+              fontWeight: '600',
+              color: done ? c.textMuted : c.text,
+              textDecorationLine: done ? 'line-through' : 'none',
+            }}
+          >
+            {habit.name}
+          </Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+            <Ionicons name="flame" size={14} color={c.streak} />
+            <Text style={{ fontSize: 14, color: c.textMuted }}>
+              {habit.currentStreak}-day streak
+              {habit.description ? ` · ${habit.description}` : ''}
+            </Text>
+          </View>
+        </View>
+      </Pressable>
+
+      {/* The tick circle: a big 48px target, filled with the theme colour when done. */}
+      <Pressable
         onPress={onToggle}
         disabled={isPending}
         accessibilityRole="checkbox"
         accessibilityState={{ checked: done, busy: isPending }}
-        accessibilityLabel={habit.name}
-        accessibilityHint={done ? 'Double tap to undo today' : 'Double tap to mark done today'}
+        accessibilityLabel={done ? `Undo ${habit.name} for today` : `Mark ${habit.name} done today`}
+        hitSlop={6}
+        style={({ pressed }) => ({
+          width: 48,
+          height: 48,
+          marginRight: space[3],
+          alignItems: 'center',
+          justifyContent: 'center',
+          opacity: pressed || isPending ? 0.5 : 1,
+        })}
       >
         <View
-          style={[
-            styles.check,
-            { borderColor: habit.color, backgroundColor: done ? habit.color : 'transparent' },
-          ]}
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: 16,
+            borderWidth: 2,
+            borderColor: done ? c.accent : c.border,
+            backgroundColor: done ? c.accent : 'transparent',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
         >
-          {done && <Text style={styles.tick}>✓</Text>}
+          {done && <Ionicons name="checkmark" size={20} color={c.onAccent} />}
         </View>
-
-        <View style={styles.texts}>
-          <Text style={[styles.name, done && styles.nameDone]}>{habit.name}</Text>
-          {habit.description ? (
-            <Text style={styles.description}>{habit.description}</Text>
-          ) : null}
-        </View>
-
-        <Text style={styles.streak}>🔥 {habit.currentStreak}</Text>
-      </Pressable>
-
-      <Pressable
-        style={({ pressed }) => [styles.edit, pressed && styles.pressed]}
-        onPress={onEdit}
-        accessibilityRole="button"
-        accessibilityLabel={`Edit ${habit.name}`}
-      >
-        <Text style={styles.editText}>Edit</Text>
       </Pressable>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    flexDirection: 'row',
-    backgroundColor: colors.bg,
-    borderWidth: 1,
-    borderColor: colors.border,
-    borderRadius: radius,
-    overflow: 'hidden',
-  },
-  cardDone: { backgroundColor: colors.surfaceMuted },
-  toggle: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: space[3],
-    padding: space[4],
-  },
-  pressed: { opacity: 0.6 },
-  check: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    borderWidth: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  tick: { color: colors.white, fontWeight: '800' },
-  texts: { flex: 1, gap: 2 },
-  name: { fontSize: 17, fontWeight: '600', color: colors.text },
-  nameDone: { color: colors.textMuted, textDecorationLine: 'line-through' },
-  description: { fontSize: 14, color: colors.textMuted },
-  streak: { fontSize: 16, fontWeight: '700', color: colors.text },
-  edit: {
-    justifyContent: 'center',
-    paddingHorizontal: space[4],
-    borderLeftWidth: 1,
-    borderLeftColor: colors.border,
-  },
-  editText: { color: colors.textMuted, fontWeight: '600' },
-});

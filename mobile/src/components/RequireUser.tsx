@@ -1,17 +1,18 @@
 import { Redirect } from 'expo-router';
 import type { ReactNode } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useAuth } from '@/auth/auth-context';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 
 /** Shows a screen only to logged-in users; everyone else goes to the login screen. */
 export function RequireUser({ children }: { children: ReactNode }) {
   const { user, isChecking } = useAuth();
+  const c = useTheme();
 
   if (isChecking) {
     return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.accent} />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: c.bg }}>
+        <ActivityIndicator color={c.accent} />
       </View>
     );
   }
@@ -20,7 +21,3 @@ export function RequireUser({ children }: { children: ReactNode }) {
   }
   return children;
 }
-
-const styles = StyleSheet.create({
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.bg },
-});

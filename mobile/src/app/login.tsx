@@ -1,22 +1,25 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { Redirect } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/auth/auth-context';
 import { Button } from '@/components/Button';
-import { Card, ErrorBox, FieldLabel, inputStyle, MutedText, NoticeBox, Screen } from '@/components/ui';
-import { colors, space } from '@/theme';
+import { Card, ErrorBox, FieldLabel, MutedText, NoticeBox, Screen, useInputStyle } from '@/components/ui';
+import { space, useTheme } from '@/theme';
 
 /** Log in, or create an account (the same screen, like the website's AuthForm). */
 export default function LoginScreen() {
   const auth = useAuth();
+  const c = useTheme();
+  const inputStyle = useInputStyle();
   const [mode, setMode] = useState<'login' | 'register'>('login');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Already logged in: go to the dashboard.
+  // Already logged in: go to the dashboard. (All hooks above run first, as React requires.)
   if (auth.user) {
     return <Redirect href="/" />;
   }
@@ -41,19 +44,24 @@ export default function LoginScreen() {
 
   return (
     <Screen>
-      <View style={styles.brand}>
-        <Text style={styles.title}>RESET</Text>
+      <View style={{ gap: space[1], marginTop: space[3] }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+          <Ionicons name="sync" size={32} color={c.accent} />
+          <Text style={{ fontSize: 32, fontWeight: '800', letterSpacing: 3, color: c.text }}>RESET</Text>
+        </View>
         <MutedText>Build better days. One habit at a time.</MutedText>
       </View>
 
       <Card>
-        <Text style={styles.heading}>{isRegister ? 'Create your account' : 'Log in'}</Text>
+        <Text style={{ fontSize: 20, fontWeight: '700', color: c.text }}>
+          {isRegister ? 'Create your account' : 'Log in'}
+        </Text>
 
         {!isRegister && auth.sessionEnded && (
           <NoticeBox message="Your session has ended. Please log in again." />
         )}
 
-        <View style={styles.field}>
+        <View style={{ gap: space[1] }}>
           <FieldLabel>Email</FieldLabel>
           <TextInput
             style={inputStyle}
@@ -67,7 +75,7 @@ export default function LoginScreen() {
           />
         </View>
 
-        <View style={styles.field}>
+        <View style={{ gap: space[1] }}>
           <FieldLabel>Password</FieldLabel>
           <TextInput
             style={inputStyle}
@@ -96,21 +104,14 @@ export default function LoginScreen() {
           }}
           accessibilityRole="button"
         >
-          <Text style={styles.switch}>
+          <Text style={{ textAlign: 'center', color: c.textMuted, paddingVertical: space[2] }}>
             {isRegister ? 'Already have an account? ' : 'New to RESET? '}
-            <Text style={styles.switchLink}>{isRegister ? 'Log in' : 'Create an account'}</Text>
+            <Text style={{ color: c.accent, fontWeight: '700' }}>
+              {isRegister ? 'Log in' : 'Create an account'}
+            </Text>
           </Text>
         </Pressable>
       </Card>
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  brand: { gap: space[1], marginTop: space[3] },
-  title: { fontSize: 32, fontWeight: '800', letterSpacing: 3, color: colors.accent },
-  heading: { fontSize: 20, fontWeight: '700', color: colors.text },
-  field: { gap: space[1] },
-  switch: { textAlign: 'center', color: colors.textMuted, paddingVertical: space[2] },
-  switchLink: { color: colors.accent, fontWeight: '700' },
-});

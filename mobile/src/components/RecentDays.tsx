@@ -1,8 +1,9 @@
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { useEffect, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { ApiError } from '../api/client';
 import { listDone, markDone, undoDone, type Habit } from '../api/habits';
-import { colors, space } from '../theme';
+import { space, useTheme } from '../theme';
 import {
   addDays,
   formatDayOfMonth,
@@ -21,6 +22,7 @@ interface RecentDaysProps {
 
 /** The last 14 days. Tap a day to mark it done or undo it, like on the website. */
 export function RecentDays({ habit, today, onChanged }: RecentDaysProps) {
+  const c = useTheme();
   const from = addDays(today, -(DAYS_SHOWN - 1));
   const days = Array.from({ length: DAYS_SHOWN }, (_, i) => addDays(from, i));
 
@@ -66,9 +68,16 @@ export function RecentDays({ habit, today, onChanged }: RecentDaysProps) {
 
   return (
     <Card>
-      <View style={styles.header}>
-        <Text style={styles.title}>Last {DAYS_SHOWN} days</Text>
-        <Text style={styles.streak}>🔥 {habit.currentStreak}-day streak</Text>
+      <View
+        style={{ flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: space[2] }}
+      >
+        <Text style={{ fontSize: 17, fontWeight: '700', color: c.text }}>Last {DAYS_SHOWN} days</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+          <Ionicons name="flame" size={16} color={c.streak} />
+          <Text style={{ fontSize: 16, fontWeight: '700', color: c.text }}>
+            {habit.currentStreak}-day streak
+          </Text>
+        </View>
       </View>
       <MutedText>
         {habit.isArchived
@@ -81,7 +90,7 @@ export function RecentDays({ habit, today, onChanged }: RecentDaysProps) {
       {!doneDays ? (
         !error && <MutedText>Loading…</MutedText>
       ) : (
-        <View style={styles.grid}>
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 6 }}>
           {days.map((day) => {
             const done = doneDays.has(day);
             const beforeStart = day < habit.startDate;
@@ -94,18 +103,28 @@ export function RecentDays({ habit, today, onChanged }: RecentDaysProps) {
                 accessibilityRole="checkbox"
                 accessibilityState={{ checked: done, disabled }}
                 accessibilityLabel={`${formatLongDate(day)}${beforeStart ? ', before this habit started' : ''}`}
-                style={[
-                  styles.day,
-                  { borderColor: beforeStart ? colors.border : habit.color },
-                  done && { backgroundColor: habit.color },
-                  disabled && !done && styles.dayDisabled,
-                  day === today && styles.today,
-                ]}
+                style={{
+                  width: '12.8%',
+                  aspectRatio: 1,
+                  borderWidth: day === today ? 3 : 2,
+                  borderRadius: 10,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderColor: beforeStart ? c.border : c.accent,
+                  backgroundColor: done ? c.accent : disabled ? c.surfaceMuted : 'transparent',
+                  opacity: disabled && !done ? 0.6 : 1,
+                }}
               >
-                <Text style={[styles.weekday, done && styles.whiteText]}>
+                <Text
+                  style={{
+                    fontSize: 9,
+                    textTransform: 'uppercase',
+                    color: done ? c.onAccent : c.textMuted,
+                  }}
+                >
                   {formatWeekday(day)}
                 </Text>
-                <Text style={[styles.number, done && styles.whiteText]}>
+                <Text style={{ fontSize: 15, fontWeight: '700', color: done ? c.onAccent : c.text }}>
                   {formatDayOfMonth(day)}
                 </Text>
               </Pressable>
@@ -116,24 +135,3 @@ export function RecentDays({ habit, today, onChanged }: RecentDaysProps) {
     </Card>
   );
 }
-
-const styles = StyleSheet.create({
-  header: { flexDirection: 'row', justifyContent: 'space-between', flexWrap: 'wrap', gap: space[2] },
-  title: { fontSize: 17, fontWeight: '700', color: colors.text },
-  streak: { fontSize: 16, fontWeight: '700', color: colors.text },
-  // Seven per row: each day takes a bit under 1/7 of the width.
-  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 6 },
-  day: {
-    width: '12.8%',
-    aspectRatio: 1,
-    borderWidth: 2,
-    borderRadius: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  dayDisabled: { backgroundColor: colors.surfaceMuted, opacity: 0.6 },
-  today: { borderWidth: 3 },
-  weekday: { fontSize: 9, color: colors.textMuted, textTransform: 'uppercase' },
-  number: { fontSize: 15, fontWeight: '700', color: colors.text },
-  whiteText: { color: colors.white },
-});

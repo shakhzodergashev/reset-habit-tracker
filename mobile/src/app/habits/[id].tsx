@@ -1,6 +1,6 @@
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { Alert, StyleSheet, Text } from 'react-native';
+import { Alert, Text } from 'react-native';
 import { ApiError } from '@/api/client';
 import { archiveHabit, getHabit, restoreHabit, updateHabit, type Habit } from '@/api/habits';
 import { useAuth } from '@/auth/auth-context';
@@ -9,7 +9,7 @@ import { HabitForm } from '@/components/HabitForm';
 import { RecentDays } from '@/components/RecentDays';
 import { RequireUser } from '@/components/RequireUser';
 import { Card, ErrorBox, MutedText, Screen } from '@/components/ui';
-import { colors } from '@/theme';
+import { useTheme } from '@/theme';
 import { todayInTimeZone } from '@/utils/dates';
 
 export default function EditHabitScreen() {
@@ -26,6 +26,7 @@ function EditHabitContent() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { user } = useAuth();
+  const c = useTheme();
   const [habit, setHabit] = useState<Habit | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -86,7 +87,11 @@ function EditHabitContent() {
     <Screen>
       <HabitForm
         submitLabel="Save changes"
-        initialValues={{ name: habit.name, description: habit.description, color: habit.color }}
+        initialValues={{
+          name: habit.name,
+          description: habit.description,
+          emoji: habit.emoji,
+        }}
         onSubmit={async (values) => {
           await updateHabit(habit.id, values);
           router.back();
@@ -98,7 +103,7 @@ function EditHabitContent() {
       <Card>
         {habit.isArchived ? (
           <>
-            <Text style={styles.title}>Archived</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: c.text }}>Archived</Text>
             <MutedText>Restore it to show it on your dashboard again.</MutedText>
             <Button
               title="Restore habit"
@@ -112,7 +117,7 @@ function EditHabitContent() {
           </>
         ) : (
           <>
-            <Text style={styles.title}>Archive habit</Text>
+            <Text style={{ fontSize: 17, fontWeight: '700', color: c.text }}>Archive habit</Text>
             <MutedText>
               It disappears from your dashboard, but its history is kept.
             </MutedText>
@@ -124,6 +129,3 @@ function EditHabitContent() {
   );
 }
 
-const styles = StyleSheet.create({
-  title: { fontSize: 17, fontWeight: '700', color: colors.text },
-});

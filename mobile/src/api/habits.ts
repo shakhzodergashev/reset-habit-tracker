@@ -5,7 +5,7 @@ export interface Habit {
   id: string;
   name: string;
   description: string | null;
-  color: string; // "#22AA88"
+  emoji: string | null; // the user's own emoji, e.g. "💧"; null = none
   startDate: string; // "YYYY-MM-DD"
   isArchived: boolean;
   createdAt: string;
@@ -19,6 +19,7 @@ export interface Dashboard {
   timeZone: string;
   completedCount: number;
   totalCount: number;
+  journeyDays: number; // how far up the 365-day hill, e.g. 12.75
   habits: Habit[]; // unfinished first, then done
 }
 
@@ -26,7 +27,22 @@ export interface Dashboard {
 export interface HabitInput {
   name: string;
   description: string | null;
-  color: string;
+  emoji: string | null; // one emoji, or null for none
+}
+
+/** What GET /stats sends. */
+export interface Stats {
+  today: string; // "YYYY-MM-DD"
+  yearDays: number; // the whole hill: 365
+  habitCount: number; // active habits
+  journeyDays: number; // how far up the hill, e.g. 12.75
+  perfectDays: number; // days where every habit was done
+  activeDays: number; // days where at least one habit was done
+  totalCompletions: number;
+}
+
+export function getStats(): Promise<Stats> {
+  return apiRequest<Stats>('/stats');
 }
 
 export function getDashboard(): Promise<Dashboard> {

@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, TextInput, View } from 'react-native';
+import { Pressable, Text, TextInput, View } from 'react-native';
 import { ApiError } from '../api/client';
 import type { HabitInput } from '../api/habits';
-import { colors, HABIT_COLORS, space } from '../theme';
+import { space, useTheme } from '../theme';
+import { lastEmoji } from '../utils/emoji';
 import { Button } from './Button';
-import { ErrorBox, FieldLabel, inputStyle } from './ui';
+import { HabitEmoji } from './HabitEmoji';
+import { ErrorBox, FieldLabel, MutedText, useInputStyle } from './ui';
 
 interface HabitFormProps {
   submitLabel: string;
@@ -12,13 +14,32 @@ interface HabitFormProps {
   onSubmit: (values: HabitInput) => Promise<void>;
 }
 
-/** The phone version of the website's HabitForm: name, description and a color. */
+/** Name, description and emoji. Used by New habit and Edit habit. */
 export function HabitForm({ submitLabel, initialValues, onSubmit }: HabitFormProps) {
+  const c = useTheme();
+  const inputStyle = useInputStyle();
   const [name, setName] = useState(initialValues?.name ?? '');
   const [description, setDescription] = useState(initialValues?.description ?? '');
-  const [color, setColor] = useState(initialValues?.color ?? HABIT_COLORS[0].value);
+  const [emoji, setEmoji] = useState<string | null>(initialValues?.emoji ?? null);
+  const [emojiHint, setEmojiHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /** Keeps only the newest emoji typed, so tapping another emoji replaces the old one. */
+  function handleEmojiChange(text: string) {
+    if (text.trim() === '') {
+      setEmoji(null);
+      setEmojiHint(null);
+      return;
+    }
+    const picked = lastEmoji(text);
+    if (picked) {
+      setEmoji(picked);
+      setEmojiHint(null);
+    } else {
+      setEmojiHint('Only emojis here. Tap the 😀 key on your keyboard.');
+    }
+  }
 
   async function handleSubmit() {
     if (!name.trim()) {
@@ -28,7 +49,11 @@ export function HabitForm({ submitLabel, initialValues, onSubmit }: HabitFormPro
     setError(null);
     setIsSubmitting(true);
     try {
-      await onSubmit({ name: name.trim(), description: description.trim() || null, color });
+      await onSubmit({
+        name: name.trim(),
+        description: description.trim() || null,
+        emoji,
+      });
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not save the habit.');
       setIsSubmitting(false);
@@ -36,8 +61,8 @@ export function HabitForm({ submitLabel, initialValues, onSubmit }: HabitFormPro
   }
 
   return (
-    <View style={styles.form}>
-      <View style={styles.field}>
+    <View style={{ gap: space[4] }}>
+      <View style={{ gap: space[1] }}>
         <FieldLabel>Name</FieldLabel>
         {/* TextInput is React Native's text box. onChangeText gives the new text directly. */}
         <TextInput
@@ -45,42 +70,45 @@ export function HabitForm({ submitLabel, initialValues, onSubmit }: HabitFormPro
           value={name}
           onChangeText={setName}
           placeholder="e.g. Read 20 pages"
+          placeholderTextColor={c.textMuted}
           maxLength={100}
-          returnKeyType="next"
         />
       </View>
 
-      <View style={styles.field}>
+      <View style={{ gap: space[1] }}>
         <FieldLabel>Description (optional)</FieldLabel>
         <TextInput
-          style={[inputStyle, styles.multiline]}
+          style={[inputStyle, { minHeight: 70, textAlignVertical: 'top' }]}
           value={description}
           onChangeText={setDescription}
           placeholder="e.g. Before bed, no phone"
+          placeholderTextColor={c.textMuted}
           maxLength={500}
           multiline
         />
       </View>
 
-      <View style={styles.field}>
-        <FieldLabel>Color</FieldLabel>
-        <View style={styles.colors} accessibilityRole="radiogroup">
-          {HABIT_COLORS.map((option) => {
-            const selected = option.value === color;
-            return (
-              <Pressable
-                key={option.value}
-                onPress={() => setColor(option.value)}
-                accessibilityRole="radio"
-                accessibilityState={{ selected }}
-                accessibilityLabel={option.name}
-                style={[styles.swatchRing, selected && styles.swatchRingSelected]}
-              >
-                <View style={[styles.swatch, { backgroundColor: option.value }]} />
-              </Pressable>
-            );
-          })}
+      {/* Emoji: any one emoji from the iPhone's own emoji keyboard. */}
+      <View style={{ gap: space[1] }}>
+        <FieldLabel>Emoji (optional)</FieldLabel>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+          <HabitEmoji emoji={emoji} name={name || '?'} />
+          <TextInput
+            style={[inputStyle, { flex: 1 }]}
+            value={emoji ?? ''}
+            onChangeText={handleEmojiChange}
+            placeholder="Tap, then the 😀 key"
+            placeholderTextColor={c.textMuted}
+            autoCorrect={false}
+            accessibilityLabel="Emoji"
+          />
+          {emoji && (
+            <Pressable onPress={() => handleEmojiChange('')} accessibilityRole="button" hitSlop={8}>
+              <Text style={{ color: c.accent, fontWeight: '600' }}>Remove</Text>
+            </Pressable>
+          )}
         </View>
+        {emojiHint && <MutedText>{emojiHint}</MutedText>}
       </View>
 
       {error && <ErrorBox message={error} />}
@@ -93,18 +121,3 @@ export function HabitForm({ submitLabel, initialValues, onSubmit }: HabitFormPro
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  form: { gap: space[4] },
-  field: { gap: space[1] },
-  multiline: { minHeight: 70, textAlignVertical: 'top' },
-  colors: { flexDirection: 'row', flexWrap: 'wrap', gap: space[3] },
-  swatchRing: {
-    padding: 3,
-    borderRadius: 24,
-    borderWidth: 2,
-    borderColor: 'transparent',
-  },
-  swatchRingSelected: { borderColor: colors.text },
-  swatch: { width: 36, height: 36, borderRadius: 18 },
-});

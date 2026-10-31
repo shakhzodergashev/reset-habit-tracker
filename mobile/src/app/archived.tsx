@@ -1,12 +1,13 @@
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
 import { ApiError } from '@/api/client';
 import { listHabits, restoreHabit, type Habit } from '@/api/habits';
 import { Button } from '@/components/Button';
+import { HabitEmoji } from '@/components/HabitEmoji';
 import { RequireUser } from '@/components/RequireUser';
 import { Card, ErrorBox, MutedText, Screen } from '@/components/ui';
-import { colors, space } from '@/theme';
+import { space, useTheme } from '@/theme';
 
 export default function ArchivedScreen() {
   return (
@@ -18,6 +19,7 @@ export default function ArchivedScreen() {
 
 /** Archived habits, each with a Restore button. */
 function ArchivedContent() {
+  const c = useTheme();
   const [habits, setHabits] = useState<Habit[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -54,15 +56,17 @@ function ArchivedContent() {
         <MutedText>Loading…</MutedText>
       ) : habits.length === 0 ? (
         <Card>
-          <Text style={styles.emptyTitle}>Nothing archived</Text>
-          <MutedText>Habits you archive from their Edit screen appear here.</MutedText>
+          <Text style={{ fontSize: 18, fontWeight: '700', color: c.text }}>Nothing archived</Text>
+          <MutedText>Habits you archive from their screen appear here.</MutedText>
         </Card>
       ) : (
         habits.map((habit) => (
           <Card key={habit.id}>
-            <View style={styles.row}>
-              <View style={[styles.dot, { backgroundColor: habit.color }]} />
-              <Text style={styles.name}>{habit.name}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
+              <HabitEmoji emoji={habit.emoji} name={habit.name} size={40} />
+              <Text style={{ fontSize: 17, fontWeight: '600', color: c.text, flex: 1 }}>
+                {habit.name}
+              </Text>
             </View>
             <Button
               title={pendingId === habit.id ? 'Restoring…' : 'Restore'}
@@ -76,10 +80,3 @@ function ArchivedContent() {
     </Screen>
   );
 }
-
-const styles = StyleSheet.create({
-  emptyTitle: { fontSize: 18, fontWeight: '700', color: colors.text },
-  row: { flexDirection: 'row', alignItems: 'center', gap: space[3] },
-  dot: { width: 14, height: 14, borderRadius: 7 },
-  name: { fontSize: 17, fontWeight: '600', color: colors.text, flex: 1 },
-});
