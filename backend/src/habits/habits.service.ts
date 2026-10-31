@@ -23,7 +23,7 @@ export function toHabitResponse(habit: HabitWithDates, today: string) {
     id: habit.id,
     name: habit.name,
     description: habit.description,
-    color: habit.color,
+    emoji: habit.emoji,
     startDate: fromDbDate(habit.startDate),
     isArchived: habit.isArchived,
     createdAt: habit.createdAt,
@@ -48,7 +48,7 @@ export class HabitsService {
         userId,
         name: dto.name,
         description: dto.description,
-        color: dto.color,
+        emoji: dto.emoji ?? null,
         startDate: toDbDate(today),
       },
       include: WITH_COMPLETION_DATES,
@@ -89,7 +89,11 @@ export class HabitsService {
     const habit = await this.prisma.habit.update({
       where: { id: habitId },
       // Fields left undefined are not changed.
-      data: { name: dto.name, description: dto.description, color: dto.color },
+      data: {
+        name: dto.name,
+        description: dto.description,
+        emoji: dto.emoji, // null = remove the emoji
+      },
       include: WITH_COMPLETION_DATES,
     });
     return toHabitResponse(habit, await this.todayFor(userId));

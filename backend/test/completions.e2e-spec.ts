@@ -51,7 +51,7 @@ describe('Completions (e2e)', () => {
     const res = await api()
       .post('/habits')
       .set(auth(token))
-      .send({ name: 'Read', color: '#22AA88' })
+      .send({ name: 'Read' })
       .expect(201);
     const habit = res.body as { id: string; startDate: string };
 

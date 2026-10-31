@@ -6,12 +6,13 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
+import { SINGLE_EMOJI } from '../emoji';
 
 // Removes spaces at both ends; anything that is not text is left for the validators to reject.
 export const trim = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() : value;
 
-// Like trim, but an empty description becomes null ("no description").
+// Like trim, but empty text becomes null ("nothing").
 export const trimToNull = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim() || null : value;
 
@@ -28,10 +29,10 @@ export class CreateHabitDto {
   @MaxLength(500)
   description?: string | null;
 
-  // A hex color such as "#22AA88". Stored in upper case so the same color always looks the same.
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.toUpperCase() : value,
-  )
-  @Matches(/^#[0-9A-F]{6}$/, { message: 'color must look like #22AA88' })
-  color!: string;
+  // Optional: one emoji from the user's keyboard, e.g. "💧". Missing, "" or null = none.
+  @Transform(trimToNull)
+  @IsOptional()
+  @IsString()
+  @Matches(SINGLE_EMOJI, { message: 'emoji must be a single emoji' })
+  emoji?: string | null;
 }

@@ -9,7 +9,7 @@ import { DashboardService } from './dashboard.service';
 export class DashboardController {
   constructor(private readonly dashboardService: DashboardService) {}
 
-  // GET /dashboard -> { today, timeZone, completedCount, totalCount, habits }
+  // GET /dashboard -> { today, timeZone, completedCount, totalCount, journeyDays, habits }
   @Get()
   get(@CurrentAuth() auth: AuthContext) {
     return this.dashboardService.get(auth.userId);

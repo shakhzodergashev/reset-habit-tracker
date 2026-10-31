@@ -6,6 +6,7 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
+import { SINGLE_EMOJI } from '../emoji';
 import { trim, trimToNull } from './create-habit.dto';
 
 /** Every field is optional: only the fields that are sent get changed. */
@@ -24,10 +25,10 @@ export class UpdateHabitDto {
   @MaxLength(500)
   description?: string | null;
 
+  // Send null or "" to remove the emoji.
+  @Transform(trimToNull)
   @IsOptional()
-  @Transform(({ value }: { value: unknown }) =>
-    typeof value === 'string' ? value.toUpperCase() : value,
-  )
-  @Matches(/^#[0-9A-F]{6}$/, { message: 'color must look like #22AA88' })
-  color?: string;
+  @IsString()
+  @Matches(SINGLE_EMOJI, { message: 'emoji must be a single emoji' })
+  emoji?: string | null;
 }

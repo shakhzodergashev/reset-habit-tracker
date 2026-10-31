@@ -17,6 +17,7 @@ interface DashboardResponse {
   timeZone: string;
   completedCount: number;
   totalCount: number;
+  journeyDays: number;
   habits: HabitResponse[];
 }
 
@@ -53,7 +54,7 @@ describe('Streaks and dashboard (e2e)', () => {
     const res = await api()
       .post('/habits')
       .set(auth(token))
-      .send({ name, color: '#22AA88' })
+      .send({ name })
       .expect(201);
     const habit = res.body as { id: string; startDate: string };
 
@@ -155,6 +156,7 @@ describe('Streaks and dashboard (e2e)', () => {
         timeZone: TASHKENT,
         completedCount: 0,
         totalCount: 0,
+        journeyDays: 0,
         habits: [],
       });
     });
@@ -214,6 +216,34 @@ describe('Streaks and dashboard (e2e)', () => {
       const bobDashboard = await getDashboard(bobToken);
       expect(bobDashboard.totalCount).toBe(0);
       expect(bobDashboard.habits).toEqual([]);
+    });
+
+    it('climbs a share of a day for each habit done that day', async () => {
+      const read = await createHabit(aliToken, 'Read');
+      const run = await createHabit(aliToken, 'Run');
+
+      await mark(read, daysAgo(5)); // 1 of 2 habits = half a day
+      await mark(read, daysAgo(4));
+      await mark(run, daysAgo(4)); // 2 of 2 = a full day
+      // days 3, 2 and 1 missed: the journey pauses, it does not go down
+      expect((await getDashboard(aliToken)).journeyDays).toBe(1.5);
+
+      // A third habit, starting today: from today on, each habit is a third of a day.
+      await api()
+        .post('/habits')
+        .set(auth(aliToken))
+        .send({ name: 'Walk' })
+        .expect(201);
+      await mark(run, today);
+      expect((await getDashboard(aliToken)).journeyDays).toBe(1.83);
+
+      // Undoing takes that share back out.
+      await unmark(run, today);
+      expect((await getDashboard(aliToken)).journeyDays).toBe(1.5);
+
+      // Each user has their own journey.
+      const bobToken = await registerUser(app, 'bob@example.com', TASHKENT);
+      expect((await getDashboard(bobToken)).journeyDays).toBe(0);
     });
 
     it('requires login', async () => {

@@ -48,7 +48,7 @@ export class HabitsController {
     return this.habitsService.findOne(auth.userId, id);
   }
 
-  // PATCH /habits/:id -> change name, description and/or color
+  // PATCH /habits/:id -> change name, description and/or emoji
   @Patch(':id')
   update(
     @CurrentAuth() auth: AuthContext,

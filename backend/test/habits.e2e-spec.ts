@@ -9,7 +9,7 @@ interface HabitResponse {
   id: string;
   name: string;
   description: string | null;
-  color: string;
+  emoji: string | null;
   startDate: string;
   isArchived: boolean;
   createdAt: string;
@@ -19,7 +19,6 @@ interface HabitResponse {
 const READING = {
   name: 'Read 20 pages',
   description: 'Before bed',
-  color: '#22AA88',
 };
 const MISSING_ID = '00000000-0000-4000-8000-000000000000';
 
@@ -72,12 +71,11 @@ describe('Habits (e2e)', () => {
     it('creates a habit that starts today in the user’s time zone', async () => {
       const habit = await createHabit(aliToken, {
         name: '  Read 20 pages ',
-        color: '#22aa88',
       });
 
       expect(habit.name).toBe('Read 20 pages'); // trimmed
-      expect(habit.color).toBe('#22AA88'); // upper case
       expect(habit.description).toBeNull();
+      expect(habit.emoji).toBeNull();
       expect(habit.isArchived).toBe(false);
       expect(habit.startDate).toBe(todayInTimeZone('Asia/Tashkent'));
       expect(habit).not.toHaveProperty('userId');
@@ -91,12 +89,24 @@ describe('Habits (e2e)', () => {
       expect(habit.description).toBeNull();
     });
 
+    it('stores the user’s own emoji; empty means none', async () => {
+      for (const emoji of ['📚', '🏃‍♀️', '👍🏽', '🇺🇿']) {
+        const habit = await createHabit(aliToken, { ...READING, emoji });
+        expect(habit.emoji).toBe(emoji);
+      }
+
+      const empty = await createHabit(aliToken, { ...READING, emoji: ' ' });
+      expect(empty.emoji).toBeNull();
+    });
+
     it('rejects invalid input', async () => {
       const bad = [
         { ...READING, name: '' },
         { ...READING, name: 'x'.repeat(101) },
-        { ...READING, color: 'green' },
-        { ...READING, color: '#12345' },
+        { ...READING, emoji: 'book' }, // text, not an emoji
+        { ...READING, emoji: '📚📚' }, // two emojis
+        { ...READING, emoji: 5 },
+        { ...READING, color: '#22AA88' }, // colours are gone
         { ...READING, description: 'x'.repeat(501) },
         { ...READING, userId: 'someone-else' }, // not an allowed field
       ];
@@ -163,6 +173,27 @@ describe('Habits (e2e)', () => {
   // ---------- PATCH /habits/:id ----------
 
   describe('PATCH /habits/:id', () => {
+    it('changes the emoji, and null removes it', async () => {
+      const habit = await createHabit(aliToken, { ...READING, emoji: '📚' });
+
+      const changed = await api()
+        .patch(`/habits/${habit.id}`)
+        .set(auth(aliToken))
+        .send({ emoji: '😴' })
+        .expect(200);
+      expect((changed.body as HabitResponse).emoji).toBe('😴');
+
+      const cleared = await api()
+        .patch(`/habits/${habit.id}`)
+        .set(auth(aliToken))
+        .send({ emoji: null })
+        .expect(200);
+      expect((cleared.body as HabitResponse).emoji).toBeNull();
+
+      // Other fields are left alone when only the emoji changes.
+      expect((cleared.body as HabitResponse).name).toBe(READING.name);
+    });
+
     it('renames a habit without losing its identity or start date', async () => {
       const habit = await createHabit(aliToken);
 
@@ -179,7 +210,6 @@ describe('Habits (e2e)', () => {
       expect(renamed.createdAt).toBe(habit.createdAt);
       // Fields that were not sent stay the same.
       expect(renamed.description).toBe(READING.description);
-      expect(renamed.color).toBe(READING.color);
     });
 
     it('removes the description when null is sent', async () => {
@@ -198,7 +228,7 @@ describe('Habits (e2e)', () => {
 
       for (const body of [
         { name: '' },
-        { color: 'red' },
+        { emoji: 'sleep' },
         { isArchived: true },
       ]) {
         await api()

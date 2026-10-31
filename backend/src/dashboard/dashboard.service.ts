@@ -2,12 +2,14 @@ import { Injectable } from '@nestjs/common';
 import { todayInTimeZone } from '../common/dates/dates';
 import { HabitsService } from '../habits/habits.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { StatsService } from '../stats/stats.service';
 
 @Injectable()
 export class DashboardService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly habits: HabitsService,
+    private readonly stats: StatsService,
   ) {}
 
   /** Everything the home screen needs, in one response. */
@@ -20,7 +22,10 @@ export class DashboardService {
     const today = todayInTimeZone(timeZone);
 
     // Active habits only (archived ones never appear), oldest first.
-    const habits = await this.habits.findAll(userId, false, today);
+    const [habits, journey] = await Promise.all([
+      this.habits.findAll(userId, false, today),
+      this.stats.journey(userId, today),
+    ]);
 
     // Not done yet first, then done. sort() is stable, so each group stays oldest first.
     habits.sort((a, b) => Number(a.completedToday) - Number(b.completedToday));
@@ -30,6 +35,7 @@ export class DashboardService {
       timeZone,
       completedCount: habits.filter((h) => h.completedToday).length,
       totalCount: habits.length,
+      journeyDays: journey.journeyDays, // how far up the year-long hill, e.g. 12.75
       habits,
     };
   }

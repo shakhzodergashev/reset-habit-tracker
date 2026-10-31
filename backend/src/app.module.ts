@@ -5,6 +5,7 @@ import { CompletionsModule } from './completions/completions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HabitsModule } from './habits/habits.module';
 import { PrismaModule } from './prisma/prisma.module';
+import { StatsModule } from './stats/stats.module';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { UsersModule } from './users/users.module';
     HabitsModule,
     CompletionsModule,
     DashboardModule,
+    StatsModule,
   ],
 })
 export class AppModule {}
