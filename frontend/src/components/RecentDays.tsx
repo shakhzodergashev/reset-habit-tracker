@@ -117,15 +117,14 @@ export function RecentDays({ habit, today, onChanged }: RecentDaysProps) {
                   className={`day${day === today ? ' is-today' : ''}`}
                   aria-pressed={done}
                   aria-label={`${formatLongDate(day)}: ${
-                    beforeStart ? 'before this habit started' : done ? 'done' : 'not done'
+                    beforeStart
+                      ? 'before this habit started'
+                      : done
+                        ? 'done'
+                        : 'not done'
                   }`}
                   disabled={disabled}
                   onClick={() => void toggleDay(day)}
-                  style={
-                    done
-                      ? { backgroundColor: habit.color, borderColor: habit.color }
-                      : { borderColor: beforeStart ? undefined : habit.color }
-                  }
                 >
                   <span className="day-weekday">{formatWeekday(day)}</span>
                   <span className="day-number">{formatDayOfMonth(day)}</span>

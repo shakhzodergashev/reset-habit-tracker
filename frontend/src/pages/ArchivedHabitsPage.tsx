@@ -3,6 +3,7 @@ import { Link } from 'react-router';
 import { ApiError } from '../api/client';
 import type { Habit } from '../api/dashboard';
 import { listHabits, restoreHabit } from '../api/habits';
+import { HabitEmoji } from '../components/HabitEmoji';
 import './ArchivedHabitsPage.css';
 
 function errorMessage(err: unknown, fallback: string): string {
@@ -23,7 +24,8 @@ export function ArchivedHabitsPage() {
         if (!ignore) setHabits(data);
       })
       .catch((err: unknown) => {
-        if (!ignore) setLoadError(errorMessage(err, 'Could not load archived habits.'));
+        if (!ignore)
+          setLoadError(errorMessage(err, 'Could not load archived habits.'));
       });
     return () => {
       ignore = true;
@@ -50,7 +52,7 @@ export function ArchivedHabitsPage() {
     <div className="archived-page">
       <div className="archived-header">
         <h2>Archived habits</h2>
-        <Link to="/">← Back to today</Link>
+        <Link to="/profile">← Back to profile</Link>
       </div>
 
       {actionError && (
@@ -74,11 +76,7 @@ export function ArchivedHabitsPage() {
         <ul className="habit-list">
           {habits.map((habit) => (
             <li key={habit.id} className="card archived-item">
-              <span
-                className="archived-color"
-                style={{ backgroundColor: habit.color }}
-                aria-hidden="true"
-              />
+              <HabitEmoji emoji={habit.emoji} name={habit.name} size={36} />
               <span className="archived-name">{habit.name}</span>
               <button
                 className="button button-secondary"

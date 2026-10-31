@@ -3,8 +3,9 @@ import { Link } from 'react-router';
 import { ApiError } from '../api/client';
 import { markDone, undoDone } from '../api/completions';
 import { getDashboard, type Dashboard, type Habit } from '../api/dashboard';
-import { useAuth } from '../auth/auth-context';
 import { HabitCard } from '../components/HabitCard';
+import { HillScene } from '../components/HillScene';
+import { useWeather } from '../journey/useWeather';
 import { formatLongDate } from '../utils/dates';
 import './DashboardPage.css';
 
@@ -12,9 +13,9 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The home page: today's progress and one card per active habit. */
+/** The Today tab: today's climb (with the real weather) and one card per active habit. */
 export function DashboardPage() {
-  const { user, logout } = useAuth();
+  const weather = useWeather();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -29,7 +30,8 @@ export function DashboardPage() {
         if (!ignore) setDashboard(data);
       })
       .catch((err: unknown) => {
-        if (!ignore) setLoadError(errorMessage(err, 'Could not load your habits.'));
+        if (!ignore)
+          setLoadError(errorMessage(err, 'Could not load your habits.'));
       });
 
     // Cleanup: React calls this when the page goes away.
@@ -54,79 +56,90 @@ export function DashboardPage() {
       // Reload so the count, order and streaks are exactly what the server calculated.
       setDashboard(await getDashboard());
     } catch (err) {
-      setActionError(errorMessage(err, 'Could not save that. Please try again.'));
+      setActionError(
+        errorMessage(err, 'Could not save that. Please try again.'),
+      );
     } finally {
       setPendingHabitId(null);
     }
   }
 
+  // Three possible states: error, still loading, or loaded.
+  if (loadError) {
+    return (
+      <p className="form-error" role="alert">
+        {loadError}
+      </p>
+    );
+  }
+  if (!dashboard) {
+    return <p className="status-message">Loading your habits…</p>;
+  }
+
+  const done = dashboard.completedCount;
+  const total = dashboard.totalCount;
+  const message =
+    total === 0
+      ? 'Add a habit to start today’s climb.'
+      : done === total
+        ? 'You reached the finish. Great day! 🎉'
+        : `${total - done} more to reach the finish.`;
+
   return (
     <div className="dashboard">
-      <div className="dashboard-bar">
-        <span className="dashboard-user">{user?.email}</span>
-        <button
-          className="button button-secondary"
-          type="button"
-          onClick={() => void logout()}
-        >
-          Log out
-        </button>
+      <div className="dashboard-summary">
+        <div>
+          <h2>Today</h2>
+          <p>{formatLongDate(dashboard.today)}</p>
+        </div>
+        <Link className="button button-primary" to="/habits/new">
+          + New habit
+        </Link>
       </div>
 
-      {/* Three possible states: error, still loading, or loaded. */}
-      {loadError ? (
+      {/* Today's climb: each habit done moves the cyclist one share up to the flag. */}
+      <section className="card today-climb">
+        <HillScene
+          progress={total === 0 ? 0 : done / total}
+          weather={weather}
+          gainText={() => '+1 ✓'}
+          label={`Today's climb: ${done} of ${total} habits done`}
+        />
+        <div className="today-climb-text">
+          <span>
+            <strong>
+              {done} of {total}
+            </strong>{' '}
+            habits done
+          </span>
+          <span>{message}</span>
+        </div>
+      </section>
+
+      {actionError && (
         <p className="form-error" role="alert">
-          {loadError}
+          {actionError}
         </p>
-      ) : !dashboard ? (
-        <p className="status-message">Loading your habits…</p>
+      )}
+
+      {dashboard.habits.length === 0 ? (
+        <section className="card welcome">
+          <h2>No habits yet</h2>
+          <p>Tap “+ New habit” to create your first one.</p>
+        </section>
       ) : (
-        <>
-          <section className="dashboard-summary">
-            <div>
-              <h2>{formatLongDate(dashboard.today)}</h2>
-              <p>
-                <strong>
-                  {dashboard.completedCount} / {dashboard.totalCount}
-                </strong>{' '}
-                completed
-              </p>
-            </div>
-            <Link className="button button-primary" to="/habits/new">
-              + New habit
-            </Link>
-          </section>
-
-          {actionError && (
-            <p className="form-error" role="alert">
-              {actionError}
-            </p>
-          )}
-
-          {dashboard.habits.length === 0 ? (
-            <section className="card welcome">
-              <h2>No habits yet</h2>
-              <p>Tap “+ New habit” to create your first one.</p>
-            </section>
-          ) : (
-            <ul className="habit-list">
-              {/* One card per habit. key tells React which card is which. */}
-              {dashboard.habits.map((habit) => (
-                <li key={habit.id}>
-                  <HabitCard
-                    habit={habit}
-                    onToggle={() => void toggleHabit(habit)}
-                    isPending={pendingHabitId === habit.id}
-                  />
-                </li>
-              ))}
-            </ul>
-          )}
-
-          <Link className="dashboard-archived-link" to="/habits/archived">
-            Archived habits
-          </Link>
-        </>
+        <ul className="habit-list">
+          {/* One card per habit. key tells React which card is which. */}
+          {dashboard.habits.map((habit) => (
+            <li key={habit.id}>
+              <HabitCard
+                habit={habit}
+                onToggle={() => void toggleHabit(habit)}
+                isPending={pendingHabitId === habit.id}
+              />
+            </li>
+          ))}
+        </ul>
       )}
     </div>
   );

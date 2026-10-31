@@ -1,0 +1,262 @@
+.hill-scene {
+  position: relative;
+}
+
+.hill-scene svg {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+/* The weather in words, on top of the sky */
+.hill-weather {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-3);
+  padding: 2px var(--space-2);
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.25);
+  color: #ffffff;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+/* ---------- moving weather ---------- */
+
+.hill-cloud {
+  animation: cloud-drift 9s ease-in-out infinite alternate;
+}
+
+.hill-rain {
+  animation: rain-fall 0.6s linear infinite;
+}
+
+.hill-snow {
+  animation: snow-fall 3s ease-in-out infinite alternate;
+}
+
+.hill-lightning {
+  animation: lightning 4s steps(1) infinite;
+}
+
+@keyframes cloud-drift {
+  to {
+    transform: translateX(12px);
+  }
+}
+
+@keyframes rain-fall {
+  from {
+    transform: translateY(-6px);
+  }
+  to {
+    transform: translateY(6px);
+  }
+}
+
+@keyframes snow-fall {
+  to {
+    transform: translate(4px, 8px);
+  }
+}
+
+@keyframes lightning {
+  0%,
+  100% {
+    opacity: 0;
+  }
+  90% {
+    opacity: 1;
+  }
+}
+
+/* ---------- the cyclist ---------- */
+
+.hill-rider {
+  transition: transform 1.2s ease-in-out; /* slides along the road after a tick */
+}
+
+/* Each wheel turns around its own centre. */
+.hill-wheel {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.hill-gain {
+  font-size: 11px;
+  font-weight: 800;
+  opacity: 0;
+}
+
+/* After a tick: wheels spin, the rider bobs, and "+1" floats up and fades. */
+.hill-rider-body.is-riding {
+  animation: rider-bob 0.3s ease-in-out 4;
+}
+
+.hill-rider-body.is-riding .hill-wheel {
+  animation: wheel-spin 1.2s linear;
+}
+
+.hill-rider-body.is-riding .hill-gain {
+  animation: gain-float 1.6s ease-out;
+}
+
+@keyframes rider-bob {
+  50% {
+    transform: translateY(-1.5px);
+  }
+}
+
+@keyframes wheel-spin {
+  to {
+    transform: rotate(720deg);
+  }
+}
+
+@keyframes gain-float {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  20%,
+  70% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}
+
+/* ---------- waving halfway up ---------- */
+
+/* The waving arm is hidden until a ride passes the middle of the hill. */
+.hill-wave-arm {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: 0% 100%; /* the shoulder */
+}
+
+/* During that ride: the handlebar arm goes away and the raised arm waves. */
+.is-waving .hill-arm {
+  animation: arm-away 1.6s steps(1, end);
+}
+
+.is-waving .hill-wave-arm {
+  animation: wave 1.6s ease-in-out;
+}
+
+@keyframes arm-away {
+  0% {
+    opacity: 0;
+  }
+}
+
+@keyframes wave {
+  0%,
+  25%,
+  50%,
+  75% {
+    opacity: 1;
+    transform: rotate(-20deg);
+  }
+  12.5%,
+  37.5%,
+  62.5%,
+  87.5% {
+    opacity: 1;
+    transform: rotate(25deg);
+  }
+  99% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+  }
+}
+
+/* ---------- at the finish: celebrate, then rest ---------- */
+
+/* One rider at a time: on the bike, cheering, or resting. */
+.hill-rider-on,
+.hill-rider-cheer,
+.hill-rider-rest {
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.pose-ride .hill-rider-on,
+.pose-celebrate .hill-rider-cheer,
+.pose-rest .hill-rider-rest {
+  opacity: 1;
+}
+
+/* Cheering: hop up and down, confetti pops around the head. */
+.pose-celebrate .hill-cheer-jump {
+  animation: cheer-jump 0.4s ease-in-out infinite;
+}
+
+.pose-celebrate .hill-confetti {
+  animation: confetti-pop 0.8s ease-out infinite;
+}
+
+.hill-confetti:nth-child(odd) {
+  animation-delay: 0.3s !important;
+}
+
+@keyframes cheer-jump {
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@keyframes confetti-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(3px);
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+
+.hill-zzz {
+  font-weight: 800;
+  opacity: 0.8;
+}
+
+.pose-rest .hill-zzz {
+  animation: zzz-float 2.4s ease-in-out infinite;
+}
+
+@keyframes zzz-float {
+  50% {
+    transform: translate(1px, -2px);
+    opacity: 0.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .is-waving .hill-arm,
+  .pose-rest .hill-zzz,
+  .pose-celebrate .hill-cheer-jump,
+  .pose-celebrate .hill-confetti,
+  .is-waving .hill-wave-arm {
+    animation: none;
+  }
+  .hill-rider {
+    transition: none;
+  }
+  .hill-cloud,
+  .hill-rain,
+  .hill-snow,
+  .hill-lightning,
+  .hill-rider-body.is-riding,
+  .hill-rider-body.is-riding .hill-wheel {
+    animation: none;
+  }
+}

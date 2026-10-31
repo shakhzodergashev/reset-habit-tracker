@@ -9,7 +9,7 @@ import { HabitForm } from '../components/HabitForm';
 import { RecentDays } from '../components/RecentDays';
 import { todayInTimeZone } from '../utils/dates';
 
-/** /habits/:id/edit: change a habit's name, description or color. */
+/** /habits/:id/edit: change a habit's name, description or emoji. */
 export function EditHabitPage() {
   // useParams reads the :id part of the address, e.g. /habits/36bc.../edit
   const { id = '' } = useParams();
@@ -29,7 +29,8 @@ export function EditHabitPage() {
       .catch((err: unknown) => {
         if (!ignore) {
           setError(
-            err instanceof ApiError && (err.status === 404 || err.status === 400)
+            err instanceof ApiError &&
+              (err.status === 404 || err.status === 400)
               ? 'Habit not found.'
               : 'Could not load this habit.',
           );
@@ -75,7 +76,7 @@ export function EditHabitPage() {
         initialValues={{
           name: habit.name,
           description: habit.description,
-          color: habit.color,
+          emoji: habit.emoji,
         }}
         onSubmit={async (values) => {
           await updateHabit(habit.id, values);

@@ -1,10 +1,13 @@
 import { Navigate, Route, Routes } from 'react-router';
 import { RequireAuth } from './auth/RequireAuth';
+import { TabLayout } from './components/TabLayout';
 import { ArchivedHabitsPage } from './pages/ArchivedHabitsPage';
 import { AuthPage } from './pages/AuthPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { EditHabitPage } from './pages/EditHabitPage';
 import { NewHabitPage } from './pages/NewHabitPage';
+import { ProfilePage } from './pages/ProfilePage';
+import { StatsPage } from './pages/StatsPage';
 import './App.css';
 
 function App() {
@@ -19,10 +22,15 @@ function App() {
       <Routes>
         {/* Pages for logged-in users only. RequireAuth guards them all. */}
         <Route element={<RequireAuth />}>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/habits/new" element={<NewHabitPage />} />
-          <Route path="/habits/archived" element={<ArchivedHabitsPage />} />
-          <Route path="/habits/:id/edit" element={<EditHabitPage />} />
+          {/* TabLayout adds the bottom tab bar: Today, Stats, Profile. */}
+          <Route element={<TabLayout />}>
+            <Route path="/" element={<DashboardPage />} />
+            <Route path="/stats" element={<StatsPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/habits/new" element={<NewHabitPage />} />
+            <Route path="/habits/archived" element={<ArchivedHabitsPage />} />
+            <Route path="/habits/:id/edit" element={<EditHabitPage />} />
+          </Route>
         </Route>
 
         <Route path="/login" element={<AuthPage mode="login" />} />

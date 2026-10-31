@@ -57,13 +57,22 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Done: filled with the habit's color (set inline), white text. */
+/* A day that can be marked: theme-coloured outline. */
+.day:not(:disabled) {
+  border-color: var(--color-accent);
+}
+
+/* Done: filled with the theme colour. */
 .day[aria-pressed='true'] {
-  color: #ffffff;
+  background: var(--color-accent);
+  border-color: var(--color-accent);
+  color: var(--color-on-accent);
 }
 
 .day.is-today {
-  box-shadow: 0 0 0 2px var(--color-bg), 0 0 0 4px var(--color-text);
+  box-shadow:
+    0 0 0 2px var(--color-bg),
+    0 0 0 4px var(--color-text);
 }
 
 .day:disabled {

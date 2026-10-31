@@ -1,0 +1,65 @@
+.stats-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.stats-header {
+  display: grid;
+  gap: var(--space-1);
+}
+
+.stats-header p {
+  color: var(--color-text-muted);
+}
+
+.stats-hill {
+  padding: 0;
+  overflow: hidden; /* keeps the hill inside the rounded corners */
+}
+
+.stats-hill-text {
+  padding: var(--space-4);
+  color: var(--color-text-muted);
+}
+
+.stats-hill-text strong {
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stats-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.stat-tile {
+  display: grid;
+  gap: var(--space-1);
+  padding: var(--space-4);
+}
+
+.stat-tile strong {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.stat-tile span {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.stats-explain {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.stats-explain p {
+  color: var(--color-text-muted);
+}

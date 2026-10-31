@@ -1,19 +1,9 @@
 import { useState, type FormEvent } from 'react';
 import { ApiError } from '../api/client';
 import type { HabitInput } from '../api/habits';
+import { lastEmoji } from '../utils/emoji';
+import { HabitEmoji } from './HabitEmoji';
 import './HabitForm.css';
-
-/** The colors a habit can have. Upper case, like the backend stores them. */
-const HABIT_COLORS = [
-  { value: '#0F766E', name: 'Teal' },
-  { value: '#2563EB', name: 'Blue' },
-  { value: '#7C3AED', name: 'Violet' },
-  { value: '#DB2777', name: 'Pink' },
-  { value: '#DC2626', name: 'Red' },
-  { value: '#EA580C', name: 'Orange' },
-  { value: '#CA8A04', name: 'Amber' },
-  { value: '#16A34A', name: 'Green' },
-];
 
 interface HabitFormProps {
   title: string;
@@ -35,11 +25,28 @@ export function HabitForm({
   const [description, setDescription] = useState(
     initialValues?.description ?? '',
   );
-  const [color, setColor] = useState(
-    initialValues?.color ?? HABIT_COLORS[0].value,
+  const [emoji, setEmoji] = useState<string | null>(
+    initialValues?.emoji ?? null,
   );
+  const [emojiHint, setEmojiHint] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  /** Keeps only the newest emoji typed, so picking another one replaces the old one. */
+  function handleEmojiChange(text: string) {
+    if (text.trim() === '') {
+      setEmoji(null);
+      setEmojiHint(null);
+      return;
+    }
+    const picked = lastEmoji(text);
+    if (picked) {
+      setEmoji(picked);
+      setEmojiHint(null);
+    } else {
+      setEmojiHint('Only emojis here. Letters and numbers are not used.');
+    }
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -51,7 +58,7 @@ export function HabitForm({
       await onSubmit({
         name: name.trim(),
         description: description.trim() || null,
-        color,
+        emoji,
       });
     } catch (err) {
       setError(
@@ -92,28 +99,37 @@ export function HabitForm({
         />
       </label>
 
-      {/* Radio buttons = "pick exactly one". Styled as colored circles. */}
-      <fieldset className="color-picker">
-        <legend>Color</legend>
-        <div className="color-options">
-          {HABIT_COLORS.map((option) => (
-            <label key={option.value} className="color-option">
-              <input
-                type="radio"
-                name="color"
-                value={option.value}
-                checked={color === option.value}
-                onChange={() => setColor(option.value)}
-              />
-              <span
-                className="color-swatch"
-                style={{ backgroundColor: option.value }}
-              />
-              <span className="visually-hidden">{option.name}</span>
-            </label>
-          ))}
+      {/* Emoji: any one emoji from the keyboard. */}
+      <div className="field">
+        <label htmlFor="habit-emoji">
+          Emoji <small>(optional)</small>
+        </label>
+        <div className="emoji-row">
+          <HabitEmoji emoji={emoji} name={name || '?'} size={48} />
+          <input
+            id="habit-emoji"
+            type="text"
+            className="emoji-input"
+            placeholder="Tap here, then pick an emoji"
+            value={emoji ?? ''}
+            onChange={(event) => handleEmojiChange(event.target.value)}
+            aria-describedby="habit-emoji-help"
+          />
+          {emoji && (
+            <button
+              type="button"
+              className="button button-secondary"
+              onClick={() => handleEmojiChange('')}
+            >
+              Remove
+            </button>
+          )}
         </div>
-      </fieldset>
+        <small id="habit-emoji-help" className="emoji-help">
+          {emojiHint ??
+            'On Windows press Win + . (full stop); on a Mac press Ctrl + Cmd + Space.'}
+        </small>
+      </div>
 
       {error && (
         <p className="form-error" role="alert">

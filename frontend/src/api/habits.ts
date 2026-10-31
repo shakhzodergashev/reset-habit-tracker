@@ -6,7 +6,7 @@ import type { Habit } from './dashboard';
 export interface HabitInput {
   name: string;
   description: string | null;
-  color: string; // "#RRGGBB"
+  emoji: string | null; // one emoji, or null for none
 }
 
 export function createHabit(input: HabitInput): Promise<Habit> {

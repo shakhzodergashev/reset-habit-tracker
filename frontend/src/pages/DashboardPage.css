@@ -3,19 +3,6 @@
   gap: var(--space-5);
 }
 
-.dashboard-bar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.dashboard-user {
-  color: var(--color-text-muted);
-  overflow-wrap: anywhere;
-}
-
 .dashboard-summary {
   display: flex;
   align-items: flex-end;
@@ -33,20 +20,24 @@
   color: var(--color-text-muted);
 }
 
-.dashboard-summary strong {
-  color: var(--color-accent);
-  font-size: 1.15rem;
-  font-variant-numeric: tabular-nums;
+/* Today's climb: the hill on top, the numbers under it. */
+.today-climb {
+  padding: 0;
+  overflow: hidden; /* keeps the hill inside the rounded corners */
 }
 
-.dashboard-archived-link {
-  justify-self: center;
+.today-climb-text {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-4);
   color: var(--color-text-muted);
-  font-size: 0.9rem;
 }
 
-.dashboard-archived-link:hover {
-  color: var(--color-accent);
+.today-climb-text strong {
+  color: var(--color-text);
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
 }
 
 .habit-list {

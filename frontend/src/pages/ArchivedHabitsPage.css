@@ -24,12 +24,6 @@
   padding: var(--space-4);
 }
 
-.archived-color {
-  width: 14px;
-  height: 14px;
-  border-radius: 50%;
-}
-
 .archived-name {
   font-weight: 600;
   overflow-wrap: anywhere;

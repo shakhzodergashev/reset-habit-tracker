@@ -1,5 +1,6 @@
 import { Link } from 'react-router';
 import type { Habit } from '../api/dashboard';
+import { HabitEmoji } from './HabitEmoji';
 import './HabitCard.css';
 
 interface HabitCardProps {
@@ -22,17 +23,12 @@ export function HabitCard({ habit, onToggle, isPending }: HabitCardProps) {
         onClick={onToggle}
         disabled={isPending}
       >
-        {/* A circle in the habit's color: empty when not done, filled with a tick when done. */}
-        <span
-          className="habit-check"
-          style={{
-            borderColor: habit.color,
-            backgroundColor: done ? habit.color : 'transparent',
-          }}
-          aria-hidden="true"
-        >
+        {/* A circle: empty when not done, filled with a tick when done. */}
+        <span className="habit-check" aria-hidden="true">
           {done && '✓'}
         </span>
+
+        <HabitEmoji emoji={habit.emoji} name={habit.name} />
 
         <span className="habit-text">
           <span className="habit-name">{habit.name}</span>

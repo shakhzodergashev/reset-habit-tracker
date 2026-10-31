@@ -5,7 +5,7 @@ export interface Habit {
   id: string;
   name: string;
   description: string | null;
-  color: string; // "#22AA88"
+  emoji: string | null; // the user's own emoji, e.g. "💧"; null = none
   startDate: string; // "YYYY-MM-DD"
   isArchived: boolean;
   createdAt: string;
@@ -19,6 +19,7 @@ export interface Dashboard {
   timeZone: string;
   completedCount: number;
   totalCount: number;
+  journeyDays: number; // how far up the 365-day hill, e.g. 12.75
   habits: Habit[]; // unfinished first, then done
 }
 
