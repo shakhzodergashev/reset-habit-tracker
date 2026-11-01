@@ -5,7 +5,15 @@ import { Pressable, Text, TextInput, View } from 'react-native';
 import { ApiError } from '@/api/client';
 import { useAuth } from '@/auth/auth-context';
 import { Button } from '@/components/Button';
-import { Card, ErrorBox, FieldLabel, MutedText, NoticeBox, Screen, useInputStyle } from '@/components/ui';
+import {
+  Card,
+  ErrorBox,
+  FieldLabel,
+  MutedText,
+  NoticeBox,
+  Screen,
+  useInputStyle,
+} from '@/components/ui';
 import { space, useTheme } from '@/theme';
 
 /** Log in, or create an account (the same screen, like the website's AuthForm). */
@@ -19,9 +27,10 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Already logged in: go to the dashboard. (All hooks above run first, as React requires.)
+  // Logged in: go to the dashboard, or, just after registering, to pick a first climb.
+  // (All hooks above run first, as React requires.)
   if (auth.user) {
-    return <Redirect href="/" />;
+    return <Redirect href={mode === 'register' ? '/welcome' : '/'} />;
   }
 
   const isRegister = mode === 'register';
@@ -47,7 +56,9 @@ export default function LoginScreen() {
       <View style={{ gap: space[1], marginTop: space[3] }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
           <Ionicons name="sync" size={32} color={c.accent} />
-          <Text style={{ fontSize: 32, fontWeight: '800', letterSpacing: 3, color: c.text }}>RESET</Text>
+          <Text style={{ fontSize: 32, fontWeight: '800', letterSpacing: 3, color: c.text }}>
+            RESET
+          </Text>
         </View>
         <MutedText>Build better days. One habit at a time.</MutedText>
       </View>

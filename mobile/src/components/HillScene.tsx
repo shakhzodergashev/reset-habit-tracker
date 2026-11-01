@@ -12,7 +12,20 @@ import Svg, {
   Text as SvgText,
   TSpan,
 } from 'react-native-svg';
-import { FLAG, HEIGHT, riderAt, ROAD, WIDTH } from '../journey/hill';
+import { FLAG, HEIGHT, KID_SCALE, riderAt, ROAD, WIDTH } from '../journey/hill';
+import {
+  BIKE,
+  CHEER,
+  HANDLEBAR_ARM,
+  LEG_FRAMES,
+  REST,
+  RIDER_BODY,
+  RIDER_HEAD,
+  SHOULDER,
+  WAVE_ARM,
+  ZZZ,
+  type Shape,
+} from '../journey/kid';
 import { sceneColors, weatherLabel, type Weather, type WeatherKind } from '../journey/weather';
 
 // The cyclist lives in its own 64 x 60 box. The point where the wheels touch the road
@@ -22,6 +35,56 @@ const BOX_W = 64;
 const BOX_H = 60;
 const GROUND_X = 34;
 const GROUND_Y = 50;
+
+/** The kid's drawing area: (0, 0) is where the wheels touch the road. */
+const KID_VIEWBOX = `${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`;
+
+/** Draws a list of shapes from journey/kid.ts. */
+function Shapes({ shapes }: { shapes: Shape[] }) {
+  return shapes.map((shape, i) =>
+    shape.kind === 'circle' ? (
+      <Circle key={i} cx={shape.cx} cy={shape.cy} r={shape.r} fill={shape.fill} />
+    ) : (
+      <Path
+        key={i}
+        d={shape.d}
+        fill={shape.fill ?? 'none'}
+        stroke={shape.stroke}
+        strokeWidth={shape.width}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  );
+}
+
+/** Some of the kid's shapes, filling the kid's box. */
+function KidSvg({ shapes }: { shapes: Shape[] }) {
+  return (
+    <Svg style={StyleSheet.absoluteFill} viewBox={KID_VIEWBOX}>
+      <Shapes shapes={shapes} />
+    </Svg>
+  );
+}
+
+/**
+ * How visible leg drawing `frame` is during a ride (`riding` goes 0 to 1 in 1.6s).
+ * The pedals turn 3 times in the first 1.2s; each of the 4 drawings shows for 0.1s
+ * in turn, like a flip-book. Standing still, only drawing 0 shows.
+ */
+function legFrameOpacity(riding: Animated.Value, frame: number) {
+  const inputRange: number[] = [];
+  const outputRange: number[] = [];
+  for (let step = 0; step < 12; step++) {
+    const shown = step % 4 === frame ? 1 : 0;
+    inputRange.push((step * 0.1) / 1.6, ((step + 1) * 0.1) / 1.6 - 0.0001);
+    outputRange.push(shown, shown);
+  }
+  const still = frame === 0 ? 1 : 0;
+  inputRange.push(0.75, 1);
+  outputRange.push(still, still);
+  return riding.interpolate({ inputRange, outputRange });
+}
 
 const CLOUDS: Record<WeatherKind, number> = {
   clear: 0,
@@ -150,13 +213,31 @@ interface HillSceneProps {
   weather: Weather;
   gainText: (gained: number) => string; // the label after a tick, e.g. "+1" or "+0.25 day"
   accessibilityLabel: string;
+  rideInOnOpen?: boolean; // start at the bottom and ride up to `progress` when shown
 }
 
 /** The hill with the weather as its sky, a finish flag, and a cyclist who rides up after every tick. */
-export function HillScene({ progress, weather, gainText, accessibilityLabel }: HillSceneProps) {
+export function HillScene({
+  progress: target,
+  weather,
+  gainText,
+  accessibilityLabel,
+  rideInOnOpen = false,
+}: HillSceneProps) {
   const colors = sceneColors(weather);
   const [width, setWidth] = useState(0); // the drawing's real width, known after layout
   const scale = width / WIDTH;
+  const k = scale * KID_SCALE; // the kid is drawn a little bigger than the scene
+
+  // Riding in: show the bottom first, then (a moment later) the real place,
+  // so the cyclist rides all the way up like after a tick.
+  const [hasRiddenIn, setHasRiddenIn] = useState(!rideInOnOpen);
+  useEffect(() => {
+    if (hasRiddenIn) return;
+    const timer = setTimeout(() => setHasRiddenIn(true), 300);
+    return () => clearTimeout(timer);
+  }, [hasRiddenIn]);
+  const progress = hasRiddenIn ? target : 0;
   const rider = riderAt(progress);
 
   // What the rider is doing. Already at the finish when the screen opens: resting.
@@ -164,7 +245,7 @@ export function HillScene({ progress, weather, gainText, accessibilityLabel }: H
 
   // When progress changes, start a ride. (React's "remember the previous value" pattern.)
   const [previous, setPrevious] = useState(progress);
-  const [ride, setRide] = useState({ count: 0, gained: 0, wave: false });
+  const [ride, setRide] = useState({ count: 0, gained: 0, wave: false, intro: false });
   if (progress !== previous) {
     setPrevious(progress);
     if (progress > previous) {
@@ -173,6 +254,8 @@ export function HillScene({ progress, weather, gainText, accessibilityLabel }: H
         gained: progress - previous,
         // Passing the middle of the hill (but not finishing): wave while riding.
         wave: previous < 0.5 && progress >= 0.5 && progress < 1,
+        // The ride-in is not a new tick, so it shows no "+1" label.
+        intro: rideInOnOpen && ride.count === 0,
       });
     }
     if (progress >= 1 && previous < 1) setPose('arrive'); // the last tick
@@ -281,6 +364,7 @@ export function HillScene({ progress, weather, gainText, accessibilityLabel }: H
     inputRange: [0, 0.01, 0.99, 1],
     outputRange: [1, 0, 0, 1],
   });
+  const legFrames = LEG_FRAMES.map((_, i) => legFrameOpacity(riding, i));
   const hopUp = hop.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, -4 * scale, 0],
@@ -365,7 +449,7 @@ export function HillScene({ progress, weather, gainText, accessibilityLabel }: H
         {weatherLabel(weather)}
       </Text>
 
-      {/* The cyclist (a simple placeholder drawing), on top of the scene. */}
+      {/* The kid on the bike, on top of the scene. */}
       {width > 0 && (
         <Animated.View
           pointerEvents="none"
@@ -373,161 +457,28 @@ export function HillScene({ progress, weather, gainText, accessibilityLabel }: H
             position: 'absolute',
             left: 0,
             top: 0,
-            width: BOX_W * scale,
-            height: BOX_H * scale,
+            width: BOX_W * k,
+            height: BOX_H * k,
             // Turn around the point where the wheels touch the road.
             transformOrigin: `${(GROUND_X / BOX_W) * 100}% ${(GROUND_Y / BOX_H) * 100}%`,
             transform: [
-              { translateX: Animated.multiply(Animated.add(position.x, -GROUND_X), scale) },
-              { translateY: Animated.multiply(Animated.add(position.y, -GROUND_Y), scale) },
+              { translateX: Animated.add(Animated.multiply(position.x, scale), -GROUND_X * k) },
+              { translateY: Animated.add(Animated.multiply(position.y, scale), -GROUND_Y * k) },
               { rotate: `${rider.angle}deg` },
             ],
           }}
         >
           <Animated.View style={{ flex: 1, transform: [{ translateY: bob }] }}>
-            {/* The bike frame. viewBox puts (0, 0) where the wheels touch the road. */}
-            <Svg
-              style={StyleSheet.absoluteFill}
-              viewBox={`${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`}
-            >
-              <Path
-                d="M-9,-8 L0,-8 L-3,-18 Z M0,-8 L8,-19 L-3,-18 M8,-19 L10,-8"
-                stroke={colors.ink}
-                strokeWidth={2}
-                fill="none"
-                strokeLinejoin="round"
-              />
-            </Svg>
-
-            {/* The rider on the bike */}
-            <Animated.View style={[StyleSheet.absoluteFill, { opacity: onBike }]}>
-              <Svg
-                width="100%"
-                height="100%"
-                viewBox={`${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`}
-              >
-                <G strokeLinecap="round">
-                  <Line x1={-3} y1={-19} x2={3} y2={-30} stroke="#ea580c" strokeWidth={4} />
-                  <Line x1={-3} y1={-19} x2={1} y2={-9} stroke={colors.ink} strokeWidth={2.5} />
-                </G>
-                <Circle cx={6} cy={-35} r={4.5} fill={colors.ink} />
-              </Svg>
-              {/* The arm on the handlebar... */}
-              <Animated.View style={[StyleSheet.absoluteFill, { opacity: handlebarArm }]}>
-                <Svg
-                  width="100%"
-                  height="100%"
-                  viewBox={`${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`}
-                >
-                  <Line
-                    x1={3}
-                    y1={-30}
-                    x2={8}
-                    y2={-20}
-                    stroke="#ea580c"
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                  />
-                </Svg>
-              </Animated.View>
-              {/* ...or, halfway up, raised and waving. Its box turns around the shoulder. */}
-              <Animated.View
-                style={{
-                  position: 'absolute',
-                  left: (GROUND_X + 3 - 2) * scale,
-                  top: (GROUND_Y - 30 - 13) * scale,
-                  width: 8 * scale,
-                  height: 14 * scale,
-                  opacity: waveArm,
-                  transformOrigin: '25% 92.86%', // the shoulder: (2, 13) in the 8 x 14 box
-                  transform: [{ rotate: waveAngle }],
-                }}
-              >
-                <Svg width="100%" height="100%" viewBox="-2 -13 8 14">
-                  <Line
-                    x1={0}
-                    y1={0}
-                    x2={3}
-                    y2={-11}
-                    stroke="#ea580c"
-                    strokeWidth={2.5}
-                    strokeLinecap="round"
-                  />
-                </Svg>
-              </Animated.View>
-            </Animated.View>
-
-            {/* The rider celebrating: off the bike, arms up, hopping, with confetti */}
-            <Animated.View style={[StyleSheet.absoluteFill, { opacity: cheering }]}>
-              <Animated.View
-                style={[StyleSheet.absoluteFill, { transform: [{ translateY: hopUp }] }]}
-              >
-                <Svg
-                  width="100%"
-                  height="100%"
-                  viewBox={`${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`}
-                >
-                  <G strokeLinecap="round" strokeLinejoin="round" fill="none">
-                    <Path d="M-25,0 L-22,-10 L-19,0" stroke={colors.ink} strokeWidth={2.5} />
-                    <Line x1={-22} y1={-10} x2={-22} y2={-21} stroke="#ea580c" strokeWidth={4} />
-                    <Path d="M-29,-31 L-22,-19 L-15,-31" stroke="#ea580c" strokeWidth={2.5} />
-                  </G>
-                  <Circle cx={-22} cy={-27} r={4.5} fill={colors.ink} />
-                </Svg>
-              </Animated.View>
-              <Animated.View style={[StyleSheet.absoluteFill, { opacity: confettiBlink }]}>
-                <Svg
-                  width="100%"
-                  height="100%"
-                  viewBox={`${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`}
-                >
-                  {CONFETTI.map(({ x, y, color }) => (
-                    <Rect key={x + ',' + y} x={x} y={y} width={2.5} height={2.5} fill={color} />
-                  ))}
-                </Svg>
-              </Animated.View>
-            </Animated.View>
-
-            {/* The rider resting: sitting on the grass behind the bike, hand on knee */}
-            <Animated.View style={[StyleSheet.absoluteFill, { opacity: resting }]}>
-              <Svg
-                width="100%"
-                height="100%"
-                viewBox={`${-GROUND_X} ${-GROUND_Y} ${BOX_W} ${BOX_H}`}
-              >
-                <G strokeLinecap="round">
-                  <Path
-                    d="M-26,-2 L-19,-8 L-13,-1"
-                    stroke={colors.ink}
-                    strokeWidth={2.5}
-                    fill="none"
-                    strokeLinejoin="round"
-                  />
-                  <Line x1={-26} y1={-3} x2={-24} y2={-15} stroke="#ea580c" strokeWidth={4} />
-                  <Line x1={-24} y1={-13} x2={-19} y2={-8} stroke="#ea580c" strokeWidth={2.5} />
-                </G>
-                <Circle cx={-23} cy={-20} r={4.5} fill={colors.ink} />
-                <SvgText fill={colors.ink} fontWeight="800" opacity={0.8}>
-                  <TSpan x={-16} y={-26} fontSize={6}>
-                    z
-                  </TSpan>
-                  <TSpan x={-11} y={-31} fontSize={8}>
-                    z
-                  </TSpan>
-                </SvgText>
-              </Svg>
-            </Animated.View>
-
             {/* The two wheels, each spinning around its own centre. */}
             {[-9, 10].map((wheelX) => (
               <Animated.View
                 key={wheelX}
                 style={{
                   position: 'absolute',
-                  left: (GROUND_X + wheelX - 8) * scale,
-                  top: (GROUND_Y - 8 - 8) * scale,
-                  width: 16 * scale,
-                  height: 16 * scale,
+                  left: (GROUND_X + wheelX - 8) * k,
+                  top: (GROUND_Y - 8 - 8) * k,
+                  width: 16 * k,
+                  height: 16 * k,
                   transform: [{ rotate: wheelSpin }],
                 }}
               >
@@ -538,14 +489,80 @@ export function HillScene({ progress, weather, gainText, accessibilityLabel }: H
               </Animated.View>
             ))}
 
+            {/* The bike frame, seat and handlebar */}
+            <KidSvg shapes={BIKE} />
+
+            {/* The kid on the bike */}
+            <Animated.View style={[StyleSheet.absoluteFill, { opacity: onBike }]}>
+              {/* The legs: 4 drawings, shown one after another while riding (a flip-book). */}
+              {LEG_FRAMES.map((frame, i) => (
+                <Animated.View key={i} style={[StyleSheet.absoluteFill, { opacity: legFrames[i] }]}>
+                  <KidSvg shapes={frame} />
+                </Animated.View>
+              ))}
+              <KidSvg shapes={RIDER_BODY} />
+              {/* The arm on the handlebar... */}
+              <Animated.View style={[StyleSheet.absoluteFill, { opacity: handlebarArm }]}>
+                <KidSvg shapes={HANDLEBAR_ARM} />
+              </Animated.View>
+              {/* ...or, halfway up, raised and waving. Its box turns around the shoulder. */}
+              <Animated.View
+                style={{
+                  position: 'absolute',
+                  left: (GROUND_X + SHOULDER.x - 2) * k,
+                  top: (GROUND_Y + SHOULDER.y - 13) * k,
+                  width: 8 * k,
+                  height: 14 * k,
+                  opacity: waveArm,
+                  transformOrigin: '25% 92.86%', // the shoulder: (2, 13) in the 8 x 14 box
+                  transform: [{ rotate: waveAngle }],
+                }}
+              >
+                <Svg width="100%" height="100%" viewBox="-2 -13 8 14">
+                  <Shapes shapes={WAVE_ARM} />
+                </Svg>
+              </Animated.View>
+              <KidSvg shapes={RIDER_HEAD} />
+            </Animated.View>
+
+            {/* At the finish: off the bike, arms up, hopping, with confetti */}
+            <Animated.View style={[StyleSheet.absoluteFill, { opacity: cheering }]}>
+              <Animated.View
+                style={[StyleSheet.absoluteFill, { transform: [{ translateY: hopUp }] }]}
+              >
+                <KidSvg shapes={CHEER} />
+              </Animated.View>
+              <Animated.View style={[StyleSheet.absoluteFill, { opacity: confettiBlink }]}>
+                <Svg width="100%" height="100%" viewBox={KID_VIEWBOX}>
+                  {CONFETTI.map(({ x, y, color }) => (
+                    <Rect key={x + ',' + y} x={x} y={y} width={2.5} height={2.5} fill={color} />
+                  ))}
+                </Svg>
+              </Animated.View>
+            </Animated.View>
+
+            {/* Then resting: sitting on the grass behind the bike, eyes closed */}
+            <Animated.View style={[StyleSheet.absoluteFill, { opacity: resting }]}>
+              <Svg width="100%" height="100%" viewBox={KID_VIEWBOX}>
+                <Shapes shapes={REST} />
+                <SvgText fill={colors.ink} fontWeight="800" opacity={0.8}>
+                  {ZZZ.map((z) => (
+                    <TSpan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
+                      z
+                    </TSpan>
+                  ))}
+                </SvgText>
+              </Svg>
+            </Animated.View>
+
             {/* "+1", floating up and fading after a tick */}
-            {ride.count > 0 && (
+            {ride.count > 0 && !ride.intro && (
               <Animated.Text
                 style={{
                   position: 'absolute',
                   top: 0,
-                  left: -20 * scale,
-                  right: -20 * scale,
+                  left: -20 * k,
+                  right: -20 * k,
                   textAlign: 'center',
                   fontSize: 11 * scale,
                   fontWeight: '800',

@@ -1,12 +1,72 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
-import type { ComponentProps } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useCallback, useState, type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { ApiError } from '@/api/client';
+import { changeClimbLength, DEFAULT_CLIMB, getStats, startClimb } from '@/api/habits';
 import { useAuth } from '@/auth/auth-context';
 import { Button } from '@/components/Button';
-import { MutedText, TabScreen } from '@/components/ui';
+import { ClimbPicker } from '@/components/ClimbPicker';
+import { Card, MutedText, TabScreen } from '@/components/ui';
 import { radius, space, useTheme } from '@/theme';
 import { formatLongDate } from '@/utils/dates';
+
+/** "Climb length": change how long the current climb is (or pick the first one). */
+function ClimbSetting() {
+  const c = useTheme();
+  const [goalDays, setGoalDays] = useState<number | null>(null); // null = loading
+  const [hasClimb, setHasClimb] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+
+  // Reload when the tab comes into view (the climb may have changed on Stats).
+  useFocusEffect(
+    useCallback(() => {
+      getStats()
+        .then((stats) => {
+          setGoalDays(stats.climb?.goalDays ?? DEFAULT_CLIMB);
+          setHasClimb(stats.climb !== null);
+          setMessage(null);
+        })
+        .catch(() => setMessage('Could not load your climb.'));
+    }, []),
+  );
+
+  async function handleChange(days: number) {
+    const before = goalDays;
+    setGoalDays(days); // show the choice straight away
+    setMessage(null);
+    setIsSaving(true);
+    try {
+      await (hasClimb ? changeClimbLength(days) : startClimb(days));
+      setHasClimb(true);
+      setMessage(`Saved: your climb is now ${days} days.`);
+    } catch (err) {
+      setGoalDays(before); // put the old choice back
+      setMessage(err instanceof ApiError ? err.message : 'Could not save.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <Card>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: c.text }}>Climb length</Text>
+      {goalDays === null ? (
+        <MutedText>{message ?? 'Loading…'}</MutedText>
+      ) : (
+        <ClimbPicker
+          value={goalDays}
+          onChange={(days) => void handleChange(days)}
+          disabled={isSaving}
+        />
+      )}
+      <MutedText>
+        {goalDays !== null && message ? message : 'Days you have already climbed still count.'}
+      </MutedText>
+    </Card>
+  );
+}
 
 /** The Profile tab: who is logged in, archived habits, and log out. */
 export default function ProfileScreen() {
@@ -55,6 +115,8 @@ export default function ProfileScreen() {
           isLast
         />
       </View>
+
+      <ClimbSetting />
 
       <MutedText>
         The weather on your hills uses your location. It goes straight to Open-Meteo, a free weather

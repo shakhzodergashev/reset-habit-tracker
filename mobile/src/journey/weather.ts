@@ -75,11 +75,11 @@ export function weatherLabel(weather: Weather): string {
 const SKIES: Record<WeatherKind, [day: [string, string], night: [string, string]]> = {
   clear: [
     ['#6fb8f0', '#cfe9fb'],
-    ['#0b1630', '#24365a'],
+    ['#1a1340', '#3a2d70'],
   ],
   partly: [
     ['#7fb6df', '#dcecf7'],
-    ['#101b33', '#2a3a57'],
+    ['#1c1642', '#3b3070'],
   ],
   cloudy: [
     ['#9aa9b8', '#dbe2e8'],
@@ -112,9 +112,9 @@ export function sceneColors(weather: Weather) {
   return {
     skyTop,
     skyBottom,
-    farHill: snowy ? (day ? '#dde8ec' : '#56636d') : day ? '#b5e0cd' : '#1f4038',
-    ground: snowy ? (day ? '#f1f6f8' : '#8796a1') : day ? '#7cc8a8' : '#2c5a50',
-    road: day ? '#0f766e' : '#5bc5b3',
+    farHill: snowy ? (day ? '#dde8ec' : '#56636d') : day ? '#d3ebae' : '#2b3d2d',
+    ground: snowy ? (day ? '#f1f6f8' : '#8796a1') : day ? '#a5d36b' : '#3e5c34',
+    road: day ? '#5e9e45' : '#8cc96b', // the path up the green hill
     ink: day ? '#17201c' : '#e8edf2', // the bike and the rider's head
     cloud: wet ? (day ? '#c9d1d9' : '#4b5563') : day ? '#ffffff' : '#5b6675',
     rain: day ? '#3b82c4' : '#7fb3e0',

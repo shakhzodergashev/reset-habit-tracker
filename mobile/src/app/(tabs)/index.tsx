@@ -1,26 +1,34 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { RefreshControl, Text, View } from 'react-native';
 import { ApiError } from '@/api/client';
-import { getDashboard, markDone, undoDone, type Dashboard, type Habit } from '@/api/habits';
+import {
+  getDashboard,
+  markDone,
+  undoDone,
+  type Dashboard,
+  type DashboardHabit,
+} from '@/api/habits';
 import { HabitCard } from '@/components/HabitCard';
 import { HillScene } from '@/components/HillScene';
-import { Card, ErrorBox, MutedText, TabScreen } from '@/components/ui';
+import { ProgressRing } from '@/components/ProgressRing';
+import { Card, ErrorBox, MutedText, RoundButton, TabScreen } from '@/components/ui';
+import { WeekStrip } from '@/components/WeekStrip';
 import { useWeather } from '@/journey/useWeather';
 import { radius, space, useTheme } from '@/theme';
-import { formatLongDate } from '@/utils/dates';
 
 function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The Today tab: today's climb (with the real weather) and one row per active habit. */
+/** The Today tab: the week, today's climb (with the real weather) and your habits. */
 export default function TodayScreen() {
   const router = useRouter();
   const c = useTheme();
   const weather = useWeather();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [date, setDate] = useState<string | undefined>(undefined); // undefined = today
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingHabitId, setPendingHabitId] = useState<string | null>(null);
@@ -28,14 +36,14 @@ export default function TodayScreen() {
 
   const load = useCallback(async () => {
     try {
-      setDashboard(await getDashboard());
+      setDashboard(await getDashboard(date));
       setLoadError(null);
     } catch (err) {
       setLoadError(errorMessage(err, 'Could not load your habits.'));
     }
-  }, []);
+  }, [date]);
 
-  // Runs every time this tab comes into view (e.g. after editing a habit).
+  // Runs when this tab comes into view (e.g. after editing a habit), and when another day is picked.
   useFocusEffect(
     useCallback(() => {
       void load();
@@ -48,15 +56,15 @@ export default function TodayScreen() {
     setIsRefreshing(false);
   }
 
-  async function toggleHabit(habit: Habit) {
+  async function toggleHabit(habit: DashboardHabit) {
     if (!dashboard) return;
     setActionError(null);
     setPendingHabitId(habit.id);
     try {
-      await (habit.completedToday
-        ? undoDone(habit.id, dashboard.today)
-        : markDone(habit.id, dashboard.today));
-      setDashboard(await getDashboard());
+      await (habit.completedOnDate
+        ? undoDone(habit.id, dashboard.date)
+        : markDone(habit.id, dashboard.date));
+      setDashboard(await getDashboard(dashboard.date));
     } catch (err) {
       setActionError(errorMessage(err, 'Could not save that. Please try again.'));
     } finally {
@@ -66,17 +74,13 @@ export default function TodayScreen() {
 
   const done = dashboard?.completedCount ?? 0;
   const total = dashboard?.totalCount ?? 0;
-  const message =
-    total === 0
-      ? 'Add a habit to start today’s climb.'
-      : done === total
-        ? 'You reached the finish. Great day! 🎉'
-        : `${total - done} more to reach the finish.`;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+  const isToday = !!dashboard && dashboard.date === dashboard.today;
 
   return (
     <TabScreen
-      title="Today"
-      subtitle={dashboard ? formatLongDate(dashboard.today) : ' '}
+      title="Reset"
+      logo
       refreshControl={
         <RefreshControl
           refreshing={isRefreshing}
@@ -91,7 +95,13 @@ export default function TodayScreen() {
         <MutedText>Loading your habits…</MutedText>
       ) : (
         <>
-          {/* Today's climb: each habit done moves the cyclist one share up to the flag. */}
+          <WeekStrip
+            today={dashboard.today}
+            selected={dashboard.date}
+            onSelect={(day) => setDate(day === dashboard.today ? undefined : day)}
+          />
+
+          {/* The climb for the day shown: each habit done moves the cyclist one share up. */}
           <View
             style={{
               borderRadius: radius + 4,
@@ -102,19 +112,32 @@ export default function TodayScreen() {
             }}
           >
             <HillScene
+              // A new hill when another day is picked, so the cyclist starts from there.
+              key={dashboard.date}
               progress={total === 0 ? 0 : done / total}
               weather={weather}
               gainText={() => '+1 ✓'}
-              accessibilityLabel={`Today's climb: ${done} of ${total} habits done`}
+              accessibilityLabel={`${isToday ? 'Today' : 'That day'}: ${done} of ${total} habits done`}
             />
-            <View style={{ padding: space[4], gap: 2 }}>
-              <Text style={{ fontSize: 15, color: c.textMuted }}>
-                <Text style={{ fontSize: 24, fontWeight: '800', color: c.text }}>
-                  {done} of {total}
-                </Text>{' '}
-                habits done
-              </Text>
-              <Text style={{ fontSize: 15, color: c.textMuted }}>{message}</Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: space[4],
+                paddingHorizontal: space[5],
+              }}
+            >
+              <View style={{ gap: 2 }}>
+                <Text style={{ fontSize: 20, fontWeight: '700', color: c.text }}>
+                  {isToday ? 'Daily Progress' : 'That day'}
+                </Text>
+                <Text style={{ fontSize: 16, color: c.textMuted }}>
+                  {done} of {total} habits
+                  {total > 0 && done === total ? ' · finished! 🎉' : ''}
+                </Text>
+              </View>
+              <ProgressRing percent={percent} />
             </View>
           </View>
 
@@ -123,22 +146,9 @@ export default function TodayScreen() {
             style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Text style={{ fontSize: 22, fontWeight: '700', color: c.text }}>Habits</Text>
-            <Pressable
-              onPress={() => router.push('/habits/new')}
-              accessibilityRole="button"
-              accessibilityLabel="New habit"
-              style={({ pressed }) => ({
-                width: 44,
-                height: 44,
-                borderRadius: 22,
-                alignItems: 'center',
-                justifyContent: 'center',
-                backgroundColor: c.accent,
-                opacity: pressed ? 0.7 : 1,
-              })}
-            >
-              <Ionicons name="add" size={26} color={c.onAccent} />
-            </Pressable>
+            <RoundButton label="New habit" onPress={() => router.push('/habits/new')}>
+              <Ionicons name="add" size={26} color={c.text} />
+            </RoundButton>
           </View>
 
           {actionError && <ErrorBox message={actionError} />}
@@ -154,6 +164,7 @@ export default function TodayScreen() {
                 <HabitCard
                   key={habit.id}
                   habit={habit}
+                  done={habit.completedOnDate}
                   isPending={pendingHabitId === habit.id}
                   onToggle={() => void toggleHabit(habit)}
                   onOpen={() => router.push({ pathname: '/habits/[id]', params: { id: habit.id } })}

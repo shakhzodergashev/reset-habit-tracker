@@ -25,8 +25,13 @@ export default function RootLayout() {
         {/* The three tabs (Today, Stats, Profile) draw their own headers. */}
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="login" options={{ title: 'RESET', headerBackVisible: false }} />
+        <Stack.Screen
+          name="welcome"
+          options={{ title: 'Welcome', headerBackVisible: false, gestureEnabled: false }}
+        />
         <Stack.Screen name="habits/new" options={{ title: 'New habit', presentation: 'modal' }} />
-        <Stack.Screen name="habits/[id]" options={{ title: 'Habit' }} />
+        <Stack.Screen name="habits/[id]/index" options={{ title: '' }} />
+        <Stack.Screen name="habits/[id]/edit" options={{ title: 'Edit habit' }} />
         <Stack.Screen name="archived" options={{ title: 'Archived habits' }} />
       </Stack>
     </AuthProvider>

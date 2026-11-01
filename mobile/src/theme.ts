@@ -20,36 +20,36 @@ export interface ThemeColors {
 
 const light: ThemeColors = {
   scheme: 'light',
-  bg: '#f4f6f5',
+  bg: '#f6f5fb',
   surface: '#ffffff',
-  surfaceMuted: '#eef2f0',
-  border: '#e2e8e5',
-  text: '#17201c',
-  textMuted: '#5d6a64',
-  accent: '#0f766e',
-  accentSoft: '#e5f2ef',
+  surfaceMuted: '#f1eff8',
+  border: '#e9e6f2',
+  text: '#1b1930',
+  textMuted: '#6c6885',
+  accent: '#7357ea', // RESET purple
+  accentSoft: '#efebfd',
   onAccent: '#ffffff',
-  ringTrack: '#dfe7e4',
+  ringTrack: '#ece9f6',
   danger: '#b42318',
   dangerSoft: '#fdecea',
-  streak: '#c2410c',
+  streak: '#f97316',
 };
 
 const dark: ThemeColors = {
   scheme: 'dark',
-  bg: '#0d1218',
-  surface: '#161d26',
-  surfaceMuted: '#1d2631',
-  border: '#28323e',
-  text: '#e8edf2',
-  textMuted: '#9aa5b1',
-  accent: '#5bc5b3',
-  accentSoft: '#173b37',
-  onAccent: '#0d1218',
-  ringTrack: '#28323e',
+  bg: '#12101c',
+  surface: '#1c1a2a',
+  surfaceMuted: '#252238',
+  border: '#2f2b46',
+  text: '#f3f1fb',
+  textMuted: '#a7a2c0',
+  accent: '#8b6cff',
+  accentSoft: '#2b2450',
+  onAccent: '#ffffff',
+  ringTrack: '#2f2b46',
   danger: '#f38b7f',
   dangerSoft: '#3a1d1a',
-  streak: '#f59e57',
+  streak: '#fb923c',
 };
 
 /** The colours for the phone's current setting. Screens redraw when the setting changes. */
@@ -59,7 +59,7 @@ export function useTheme(): ThemeColors {
 
 export const space = { 1: 4, 2: 8, 3: 12, 4: 16, 5: 24, 6: 32 };
 
-export const radius = 16;
+export const radius = 18;
 
 /** A colour at low strength: "#0f766e" -> "#0f766e26" (about 15%). */
 export function tint(hexColor: string, alphaHex = '26'): string {

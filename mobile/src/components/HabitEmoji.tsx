@@ -18,7 +18,7 @@ export function HabitEmoji({
         width: size,
         height: size,
         borderRadius: size * 0.3,
-        backgroundColor: c.surfaceMuted,
+        backgroundColor: c.accentSoft,
         alignItems: 'center',
         justifyContent: 'center',
       }}

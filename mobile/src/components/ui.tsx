@@ -1,6 +1,6 @@
 // Small building blocks shared by several screens. All follow the light/dark theme.
 import type { ReactElement, ReactNode } from 'react';
-import { ScrollView, Text, View, type RefreshControlProps } from 'react-native';
+import { Pressable, ScrollView, Text, View, type RefreshControlProps } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radius, space, useTheme } from '../theme';
 
@@ -23,18 +23,20 @@ export function Screen({ children }: { children: ReactNode }) {
 }
 
 /**
- * A tab screen (Today, Stats, Profile): a big title at the top instead of a top bar,
- * and content that scrolls clear of the bottom tab bar.
+ * A tab screen (Today, Habits, Insights, Profile): a big title at the top instead
+ * of a top bar, and content that scrolls clear of the bottom tab bar.
  */
 export function TabScreen({
   title,
   subtitle,
+  logo = false,
   right,
   refreshControl,
   children,
 }: {
   title: string;
   subtitle?: string;
+  logo?: boolean; // the "◌" ring before the title, as on Today
   right?: ReactNode; // e.g. a round button next to the title
   refreshControl?: ReactElement<RefreshControlProps>;
   children: ReactNode;
@@ -49,7 +51,25 @@ export function TabScreen({
       >
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[3] }}>
           <View style={{ flex: 1, gap: space[1] }}>
-            <Text style={{ fontSize: 34, fontWeight: '800', color: c.text }}>{title}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: space[2] }}>
+              {logo && (
+                // An open ring, like a fresh start.
+                <View
+                  style={{
+                    width: 26,
+                    height: 26,
+                    borderRadius: 13,
+                    borderWidth: 4,
+                    borderColor: c.text,
+                    borderRightColor: 'transparent',
+                    transform: [{ rotate: '-30deg' }],
+                  }}
+                />
+              )}
+              <Text style={{ fontSize: logo ? 30 : 34, fontWeight: '800', color: c.text }}>
+                {title}
+              </Text>
+            </View>
             {subtitle !== undefined && (
               <Text style={{ fontSize: 16, color: c.textMuted }}>{subtitle}</Text>
             )}
@@ -59,6 +79,39 @@ export function TabScreen({
         {children}
       </ScrollView>
     </SafeAreaView>
+  );
+}
+
+/** A round 44px button with an icon inside, like the "+" next to "Habits". */
+export function RoundButton({
+  label,
+  onPress,
+  children,
+}: {
+  label: string; // what VoiceOver says, e.g. "New habit"
+  onPress: () => void;
+  children: ReactNode;
+}) {
+  const c = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={({ pressed }) => ({
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: c.surface,
+        borderWidth: 1,
+        borderColor: c.border,
+        opacity: pressed ? 0.6 : 1,
+      })}
+    >
+      {children}
+    </Pressable>
   );
 }
 

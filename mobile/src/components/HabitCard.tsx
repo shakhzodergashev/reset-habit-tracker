@@ -6,15 +6,15 @@ import { HabitEmoji } from './HabitEmoji';
 
 interface HabitCardProps {
   habit: Habit;
-  onToggle: () => void; // the circle on the right: mark done, or undo
-  onOpen: () => void; // the rest of the row: open the habit
-  isPending: boolean;
+  done: boolean; // done on the day shown
+  onOpen: () => void; // the row: open the habit
+  onToggle?: () => void; // the tick circle: mark done, or undo (left out = no tick)
+  isPending?: boolean;
 }
 
-/** One habit row: emoji tile, name and streak, and a big tick circle on the right. */
-export function HabitCard({ habit, onToggle, onOpen, isPending }: HabitCardProps) {
+/** One habit row: a tick circle on the left, name and streak, and the emoji on the right. */
+export function HabitCard({ habit, done, onOpen, onToggle, isPending }: HabitCardProps) {
   const c = useTheme();
-  const done = habit.completedToday;
 
   return (
     <View
@@ -25,10 +25,44 @@ export function HabitCard({ habit, onToggle, onOpen, isPending }: HabitCardProps
         borderWidth: 1,
         borderColor: c.border,
         borderRadius: radius,
-        overflow: 'hidden',
+        paddingLeft: onToggle ? space[2] : space[4],
       }}
     >
-      {/* Tap the row: open the habit (edit, past days, archive). */}
+      {/* The tick circle: a big 48px target, filled purple with a tick when done. */}
+      {onToggle && (
+        <Pressable
+          onPress={onToggle}
+          disabled={isPending}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: done, busy: isPending }}
+          accessibilityLabel={done ? `Undo ${habit.name}` : `Mark ${habit.name} done`}
+          hitSlop={4}
+          style={({ pressed }) => ({
+            width: 48,
+            height: 48,
+            alignItems: 'center',
+            justifyContent: 'center',
+            opacity: pressed || isPending ? 0.5 : 1,
+          })}
+        >
+          <View
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 15,
+              borderWidth: 2,
+              borderColor: done ? c.accent : c.border,
+              backgroundColor: done ? c.accent : 'transparent',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            {done && <Ionicons name="checkmark" size={19} color={c.onAccent} />}
+          </View>
+        </Pressable>
+      )}
+
+      {/* The rest of the row opens the habit (its calendar and streaks). */}
       <Pressable
         onPress={onOpen}
         accessibilityRole="button"
@@ -39,63 +73,23 @@ export function HabitCard({ habit, onToggle, onOpen, isPending }: HabitCardProps
           flexDirection: 'row',
           alignItems: 'center',
           gap: space[3],
-          padding: space[3],
+          paddingVertical: space[3],
+          paddingRight: space[3],
+          paddingLeft: onToggle ? space[1] : 0,
           opacity: pressed ? 0.6 : 1,
         })}
       >
-        <HabitEmoji emoji={habit.emoji} name={habit.name} />
         <View style={{ flex: 1, gap: 2 }}>
-          <Text
-            style={{
-              fontSize: 17,
-              fontWeight: '600',
-              color: done ? c.textMuted : c.text,
-              textDecorationLine: done ? 'line-through' : 'none',
-            }}
-          >
-            {habit.name}
-          </Text>
+          <Text style={{ fontSize: 17, fontWeight: '600', color: c.text }}>{habit.name}</Text>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
             <Ionicons name="flame" size={14} color={c.streak} />
-            <Text style={{ fontSize: 14, color: c.textMuted }}>
+            <Text style={{ flexShrink: 1, fontSize: 14, color: c.textMuted }} numberOfLines={1}>
               {habit.currentStreak}-day streak
               {habit.description ? ` · ${habit.description}` : ''}
             </Text>
           </View>
         </View>
-      </Pressable>
-
-      {/* The tick circle: a big 48px target, filled with the theme colour when done. */}
-      <Pressable
-        onPress={onToggle}
-        disabled={isPending}
-        accessibilityRole="checkbox"
-        accessibilityState={{ checked: done, busy: isPending }}
-        accessibilityLabel={done ? `Undo ${habit.name} for today` : `Mark ${habit.name} done today`}
-        hitSlop={6}
-        style={({ pressed }) => ({
-          width: 48,
-          height: 48,
-          marginRight: space[3],
-          alignItems: 'center',
-          justifyContent: 'center',
-          opacity: pressed || isPending ? 0.5 : 1,
-        })}
-      >
-        <View
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: 16,
-            borderWidth: 2,
-            borderColor: done ? c.accent : c.border,
-            backgroundColor: done ? c.accent : 'transparent',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          {done && <Ionicons name="checkmark" size={20} color={c.onAccent} />}
-        </View>
+        <HabitEmoji emoji={habit.emoji} name={habit.name} size={44} />
       </Pressable>
     </View>
   );

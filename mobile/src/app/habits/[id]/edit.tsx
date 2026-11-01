@@ -3,14 +3,11 @@ import { useCallback, useEffect, useState } from 'react';
 import { Alert, Text } from 'react-native';
 import { ApiError } from '@/api/client';
 import { archiveHabit, getHabit, restoreHabit, updateHabit, type Habit } from '@/api/habits';
-import { useAuth } from '@/auth/auth-context';
 import { Button } from '@/components/Button';
 import { HabitForm } from '@/components/HabitForm';
-import { RecentDays } from '@/components/RecentDays';
 import { RequireUser } from '@/components/RequireUser';
 import { Card, ErrorBox, MutedText, Screen } from '@/components/ui';
 import { useTheme } from '@/theme';
-import { todayInTimeZone } from '@/utils/dates';
 
 export default function EditHabitScreen() {
   return (
@@ -20,12 +17,11 @@ export default function EditHabitScreen() {
   );
 }
 
-/** Edit a habit, fix past days, and archive or restore it. */
+/** Edit a habit's name, description and emoji, and archive or restore it. */
 function EditHabitContent() {
-  // The [id] in the file name becomes a parameter, like useParams() on the website.
+  // The [id] in the folder name becomes a parameter, like useParams() on the website.
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { user } = useAuth();
   const c = useTheme();
   const [habit, setHabit] = useState<Habit | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,7 +49,7 @@ function EditHabitContent() {
       </Screen>
     );
   }
-  if (!habit || !user) {
+  if (!habit) {
     return (
       <Screen>
         <MutedText>Loading…</MutedText>
@@ -61,13 +57,11 @@ function EditHabitContent() {
     );
   }
 
-  const today = todayInTimeZone(user.timeZone);
-
   // On a phone, the native confirmation dialog is the natural "Are you sure?".
   function confirmArchive(current: Habit) {
     Alert.alert(
       `Archive “${current.name}”?`,
-      'It disappears from your dashboard, but its history is kept. You can restore it any time.',
+      'It disappears from your habits, but its history is kept. You can restore it any time.',
       [
         { text: 'Keep habit', style: 'cancel' },
         {
@@ -75,7 +69,8 @@ function EditHabitContent() {
           style: 'destructive',
           onPress: () => {
             archiveHabit(current.id)
-              .then(() => router.back())
+              // Back past the habit's page too, to the list it came from.
+              .then(() => router.dismissTo('/habits'))
               .catch(() => Alert.alert('Could not archive the habit. Please try again.'));
           },
         },
@@ -98,13 +93,11 @@ function EditHabitContent() {
         }}
       />
 
-      <RecentDays habit={habit} today={today} onChanged={() => void reload()} />
-
       <Card>
         {habit.isArchived ? (
           <>
             <Text style={{ fontSize: 17, fontWeight: '700', color: c.text }}>Archived</Text>
-            <MutedText>Restore it to show it on your dashboard again.</MutedText>
+            <MutedText>Restore it to show it in your habits again.</MutedText>
             <Button
               title="Restore habit"
               variant="secondary"
@@ -118,14 +111,15 @@ function EditHabitContent() {
         ) : (
           <>
             <Text style={{ fontSize: 17, fontWeight: '700', color: c.text }}>Archive habit</Text>
-            <MutedText>
-              It disappears from your dashboard, but its history is kept.
-            </MutedText>
-            <Button title="Archive habit…" variant="secondary" onPress={() => confirmArchive(habit)} />
+            <MutedText>It disappears from your habits, but its history is kept.</MutedText>
+            <Button
+              title="Archive habit…"
+              variant="secondary"
+              onPress={() => confirmArchive(habit)}
+            />
           </>
         )}
       </Card>
     </Screen>
   );
 }
-
