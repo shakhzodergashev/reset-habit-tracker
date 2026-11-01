@@ -1,0 +1,89 @@
+.bar-chart {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: var(--space-2);
+  height: 190px;
+}
+
+/* 100% ... 0% down the left side, lined up with the grid lines. */
+.bar-chart-axis {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding-bottom: 22px; /* the height of the labels under the bars */
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  line-height: 0;
+}
+
+.bar-chart-plot {
+  position: relative;
+}
+
+.bar-chart-grid {
+  position: absolute;
+  inset: 0 0 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.bar-chart-grid span {
+  border-top: 1px solid var(--color-border);
+}
+
+.bar-chart-bars {
+  position: relative;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  display: flex;
+  gap: 4px;
+}
+
+.bar-chart-bars li {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bar-chart-column {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+
+.bar-chart-bar {
+  width: min(70%, 32px);
+  border-radius: 8px 8px 3px 3px;
+  background: var(--color-accent);
+  opacity: 0.45;
+  transition: height 0.5s ease;
+}
+
+.is-current .bar-chart-bar {
+  opacity: 1;
+}
+
+.bar-chart-label {
+  height: 22px;
+  padding-top: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.75rem;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.is-current .bar-chart-label {
+  color: var(--color-text);
+  font-weight: 700;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar-chart-bar {
+    transition: none;
+  }
+}

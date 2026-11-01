@@ -1,0 +1,190 @@
+.habit-detail {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Back arrow on the left, Edit on the right. */
+.habit-detail-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.habit-detail-bar a {
+  color: var(--color-accent);
+  font-weight: 600;
+  font-size: 1.05rem;
+  text-decoration: none;
+}
+
+.habit-detail-head {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  text-align: center;
+}
+
+.habit-detail-head h2 {
+  font-size: 1.8rem;
+  overflow-wrap: anywhere;
+}
+
+.habit-detail-head p {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+}
+
+/* ---------- the month calendar ---------- */
+
+.month-calendar {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.month-calendar-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.month-calendar-bar h3 {
+  font-size: 1.1rem;
+}
+
+.month-calendar-bar button {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: var(--color-text);
+  cursor: pointer;
+}
+
+.month-calendar-bar button:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.month-calendar-bar button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.month-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-2) var(--space-1);
+  justify-items: center;
+}
+
+.month-weekday {
+  color: var(--color-text-muted);
+  font-size: 0.8rem;
+}
+
+.month-day {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  border: none;
+  background: var(--color-surface-muted);
+  color: var(--color-text);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.month-day:hover:not(:disabled) {
+  box-shadow: 0 0 0 2px var(--color-accent);
+}
+
+/* Done: filled purple with a tick. */
+.month-day[aria-pressed='true'] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+}
+
+/* Today: a soft purple circle, unless it's done. */
+.month-day.is-today:not([aria-pressed='true']) {
+  background: var(--color-accent-soft);
+  color: var(--color-accent);
+}
+
+/* Before the habit started, or still to come. */
+.month-day:disabled {
+  cursor: default;
+}
+
+.month-day:disabled:not([aria-pressed='true']) {
+  background: none;
+  color: var(--color-text-muted);
+}
+
+/* ---------- streak tiles and history ---------- */
+
+.streak-tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.streak-tile {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-4);
+}
+
+.streak-tile strong {
+  font-size: 1.6rem;
+  font-weight: 800;
+}
+
+.streak-tile span:last-child {
+  color: var(--color-text-muted);
+}
+
+.streak-icon.is-flame {
+  color: #f97316;
+}
+
+.streak-icon.is-trophy {
+  color: #eab308;
+}
+
+.history-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.history-list li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.history-list li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.history-tick {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  font-size: 0.8rem;
+  font-weight: 800;
+}

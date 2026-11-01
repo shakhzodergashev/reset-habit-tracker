@@ -1,0 +1,13 @@
+.climb-picker {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.climb-about {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.climb-about strong {
+  color: var(--color-text);
+}

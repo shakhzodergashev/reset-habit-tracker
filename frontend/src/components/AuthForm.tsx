@@ -31,7 +31,8 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
       } else {
         await auth.login(email, password);
       }
-      navigate('/', { replace: true }); // go to the home page
+      // New account: pick a first climb. Logged in: go to the home page.
+      navigate(isRegister ? '/welcome' : '/', { replace: true });
     } catch (err) {
       setError(
         err instanceof ApiError

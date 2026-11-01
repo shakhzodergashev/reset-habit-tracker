@@ -5,16 +5,16 @@
 */
 :root {
   /* Colors */
-  --color-page: #ffffff; /* behind everything */
+  --color-page: #f6f5fb; /* behind everything */
   --color-bg: #ffffff; /* cards, inputs, secondary buttons */
-  --color-surface-muted: #f5f7f6;
-  --color-border: #e2e8e5;
-  --color-text: #17201c;
-  --color-text-muted: #5d6a64;
-  --color-accent: #0f766e;
-  --color-accent-hover: #0b5f58;
-  --color-accent-soft: #e5f2ef;
-  --color-on-accent: #ffffff; /* text on teal buttons */
+  --color-surface-muted: #f1eff8;
+  --color-border: #e9e6f2;
+  --color-text: #1b1930;
+  --color-text-muted: #6c6885;
+  --color-accent: #7357ea; /* RESET purple */
+  --color-accent-hover: #6040d8;
+  --color-accent-soft: #efebfd;
+  --color-on-accent: #ffffff; /* text on purple buttons */
   --color-danger: #b42318;
   --color-danger-soft: #fdecea;
   --color-on-danger: #ffffff;
@@ -32,9 +32,9 @@
   --space-7: 48px;
 
   /* Shapes */
-  --radius: 12px;
+  --radius: 18px;
   --shadow-card:
-    0 1px 2px rgba(23, 32, 28, 0.06), 0 2px 6px rgba(23, 32, 28, 0.04);
+    0 1px 2px rgba(40, 30, 90, 0.05), 0 4px 14px rgba(40, 30, 90, 0.05);
 
   color-scheme: light;
   font-family: var(--font-sans);
@@ -45,16 +45,16 @@
 /* Dark mode: only the colours change. Same names, so every component follows. */
 @media (prefers-color-scheme: dark) {
   :root {
-    --color-page: #0d1218;
-    --color-bg: #161d26;
-    --color-surface-muted: #1d2631;
-    --color-border: #28323e;
-    --color-text: #e8edf2;
-    --color-text-muted: #9aa5b1;
-    --color-accent: #5bc5b3;
-    --color-accent-hover: #7fd4c6;
-    --color-accent-soft: #173b37;
-    --color-on-accent: #0d1218;
+    --color-page: #12101c;
+    --color-bg: #1c1a2a;
+    --color-surface-muted: #252238;
+    --color-border: #2f2b46;
+    --color-text: #f3f1fb;
+    --color-text-muted: #a7a2c0;
+    --color-accent: #8b6cff;
+    --color-accent-hover: #a088ff;
+    --color-accent-soft: #2b2450;
+    --color-on-accent: #ffffff;
     --color-danger: #f38b7f;
     --color-danger-soft: #3a1d1a;
     --color-on-danger: #0d1218;

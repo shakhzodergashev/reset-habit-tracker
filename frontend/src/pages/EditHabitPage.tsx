@@ -3,18 +3,14 @@ import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import type { Habit } from '../api/dashboard';
 import { archiveHabit, getHabit, updateHabit } from '../api/habits';
-import { useAuth } from '../auth/auth-context';
 import { ArchiveHabitCard } from '../components/ArchiveHabitCard';
 import { HabitForm } from '../components/HabitForm';
-import { RecentDays } from '../components/RecentDays';
-import { todayInTimeZone } from '../utils/dates';
 
 /** /habits/:id/edit: change a habit's name, description or emoji. */
 export function EditHabitPage() {
   // useParams reads the :id part of the address, e.g. /habits/36bc.../edit
   const { id = '' } = useParams();
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [habit, setHabit] = useState<Habit | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -46,24 +42,12 @@ export function EditHabitPage() {
     return (
       <section className="card welcome">
         <h2>{error}</h2>
-        <Link to="/">Back to your habits</Link>
+        <Link to="/habits">Back to your habits</Link>
       </section>
     );
   }
-  if (!habit || !user) {
+  if (!habit) {
     return <p className="status-message">Loading…</p>;
-  }
-
-  // Today in the user's own time zone (the backend double-checks every date).
-  const today = todayInTimeZone(user.timeZone);
-
-  // After a day is marked or undone, reload the habit so its streak is up to date.
-  function reloadHabit() {
-    getHabit(id)
-      .then(setHabit)
-      .catch(() => {
-        // Keep showing the old streak; the next page load will correct it.
-      });
   }
 
   return (
@@ -80,19 +64,17 @@ export function EditHabitPage() {
         }}
         onSubmit={async (values) => {
           await updateHabit(habit.id, values);
-          navigate('/');
+          navigate(`/habits/${habit.id}`); // back to the habit's page
         }}
-        onCancel={() => navigate('/')}
+        onCancel={() => navigate(`/habits/${habit.id}`)}
       />
-
-      <RecentDays habit={habit} today={today} onChanged={reloadHabit} />
 
       {!habit.isArchived && (
         <ArchiveHabitCard
           habitName={habit.name}
           onArchive={async () => {
             await archiveHabit(habit.id);
-            navigate('/');
+            navigate('/habits');
           }}
         />
       )}

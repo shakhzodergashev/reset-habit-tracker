@@ -1,0 +1,111 @@
+.insights-page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.insights-title {
+  font-size: 1.6rem;
+  text-align: center;
+}
+
+/* Number tiles: two per row (three for the small all-time ones). */
+.insights-tiles {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+}
+
+.insights-tiles.is-three {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.insights-tile {
+  display: grid;
+  gap: 2px;
+  padding: var(--space-4);
+}
+
+.insights-tile strong {
+  font-size: 2rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.15;
+}
+
+.insights-tile span:last-child {
+  color: var(--color-text-muted);
+}
+
+.insights-tile.is-small strong {
+  font-size: 1.4rem;
+}
+
+.insights-tile.is-small span:last-child {
+  font-size: 0.85rem;
+}
+
+.insights-tile-icon {
+  color: var(--color-accent);
+  margin-bottom: var(--space-1);
+}
+
+.insights-tile-icon.is-flame {
+  color: #f97316;
+}
+
+.insights-section {
+  display: grid;
+  gap: var(--space-3);
+}
+
+.insights-section h3 {
+  font-size: 1.2rem;
+}
+
+.insights-empty {
+  color: var(--color-text-muted);
+}
+
+/* Top habits: one row per habit, the percent on the right in purple. */
+.top-habits {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.top-habits li {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+}
+
+.top-habits li + li {
+  border-top: 1px solid var(--color-border);
+}
+
+.top-habit-text {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+}
+
+.top-habit-name {
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.top-habit-days {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.top-habit-rate {
+  color: var(--color-accent);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}

@@ -64,3 +64,8 @@
   color: var(--color-text-muted);
   overflow-wrap: anywhere;
 }
+
+.profile-climb {
+  display: grid;
+  gap: var(--space-3);
+}

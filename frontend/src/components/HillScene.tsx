@@ -1,12 +1,50 @@
 import { useEffect, useId, useState } from 'react';
-import { FLAG, HEIGHT, riderAt, ROAD, WIDTH } from '../journey/hill';
+import { FLAG, HEIGHT, KID_SCALE, riderAt, ROAD, WIDTH } from '../journey/hill';
 import {
   sceneColors,
   weatherLabel,
   type Weather,
   type WeatherKind,
 } from '../journey/weather';
+import {
+  BIKE,
+  CHEER,
+  HANDLEBAR_ARM,
+  LEG_FRAMES,
+  REST,
+  RIDER_BODY,
+  RIDER_HEAD,
+  SHOULDER,
+  WAVE_ARM,
+  ZZZ,
+  type Shape,
+} from '../journey/kid';
 import './HillScene.css';
+
+/** Draws a list of shapes from journey/kid.ts. */
+function Shapes({ shapes }: { shapes: Shape[] }) {
+  return shapes.map((shape, i) =>
+    shape.kind === 'circle' ? (
+      <circle
+        key={i}
+        cx={shape.cx}
+        cy={shape.cy}
+        r={shape.r}
+        fill={shape.fill}
+      />
+    ) : (
+      <path
+        key={i}
+        d={shape.d}
+        fill={shape.fill ?? 'none'}
+        stroke={shape.stroke}
+        strokeWidth={shape.width}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    ),
+  );
+}
 
 const CLOUDS: Record<WeatherKind, number> = {
   clear: 0,
@@ -159,16 +197,28 @@ interface HillSceneProps {
   weather: Weather;
   gainText: (gained: number) => string; // the label after a tick, e.g. "+1" or "+0.25 day"
   label: string; // what screen readers say about the picture
+  rideInOnOpen?: boolean; // start at the bottom and ride up to `progress` when shown
 }
 
 /** The hill with the weather as its sky, a finish flag, and a cyclist who rides up after every tick. */
 export function HillScene({
-  progress,
+  progress: target,
   weather,
   gainText,
   label,
+  rideInOnOpen = false,
 }: HillSceneProps) {
   const colors = sceneColors(weather);
+
+  // Riding in: show the bottom first, then (a moment later) the real place,
+  // so the cyclist rides all the way up like after a tick.
+  const [hasRiddenIn, setHasRiddenIn] = useState(!rideInOnOpen);
+  useEffect(() => {
+    if (hasRiddenIn) return;
+    const timer = setTimeout(() => setHasRiddenIn(true), 300);
+    return () => clearTimeout(timer);
+  }, [hasRiddenIn]);
+  const progress = hasRiddenIn ? target : 0;
   const rider = riderAt(progress);
   const skyId = useId(); // a unique id for the sky gradient, in case two hills are on one page
 
@@ -177,7 +227,12 @@ export function HillScene({
 
   // When progress changes, start a ride. (React's "remember the previous value" pattern.)
   const [previous, setPrevious] = useState(progress);
-  const [ride, setRide] = useState({ count: 0, gained: 0, wave: false });
+  const [ride, setRide] = useState({
+    count: 0,
+    gained: 0,
+    wave: false,
+    intro: false,
+  });
   if (progress !== previous) {
     setPrevious(progress);
     if (progress > previous) {
@@ -186,6 +241,8 @@ export function HillScene({
         gained: progress - previous,
         // Passing the middle of the hill (but not finishing): wave while riding.
         wave: previous < 0.5 && progress >= 0.5 && progress < 1,
+        // The ride-in is not a new tick, so it shows no "+1" label.
+        intro: rideInOnOpen && ride.count === 0,
       });
     }
     if (progress >= 1 && previous < 1) setPose('arrive'); // the last tick
@@ -269,13 +326,13 @@ export function HillScene({
           ))}
         </g>
 
-        {/* The cyclist (a simple placeholder drawing), tilted to match the slope.
+        {/* The kid on the bike, tilted to match the slope.
             A CSS transition slides it to its new place. */}
         <g
           // The pose class decides which rider is shown (see HillScene.css).
           className={`hill-rider pose-${pose === 'arrive' ? 'ride' : pose}`}
           style={{
-            transform: `translate(${rider.x}px, ${rider.y}px) rotate(${rider.angle}deg)`,
+            transform: `translate(${rider.x}px, ${rider.y}px) rotate(${rider.angle}deg) scale(${KID_SCALE})`,
           }}
         >
           {/* key = ride.count: a new key restarts the animation on every tick. */}
@@ -291,81 +348,34 @@ export function HillScene({
           >
             <Wheel cx={-9} color={colors.ink} />
             <Wheel cx={10} color={colors.ink} />
-            <path
-              d="M-9,-8 L0,-8 L-3,-18 Z M0,-8 L8,-19 L-3,-18 M8,-19 L10,-8"
-              stroke={colors.ink}
-              strokeWidth={2}
-              fill="none"
-              strokeLinejoin="round"
-            />
-            {/* The rider on the bike */}
-            <g className="hill-rider-on" strokeLinecap="round">
-              <line
-                x1={-3}
-                y1={-19}
-                x2={3}
-                y2={-30}
-                stroke="#ea580c"
-                strokeWidth={4}
-              />
+            <Shapes shapes={BIKE} />
+
+            {/* The kid on the bike */}
+            <g className="hill-rider-on">
+              {/* The legs: 4 drawings, shown one after another while riding (a flip-book). */}
+              {LEG_FRAMES.map((frame, i) => (
+                <g key={i} className={`hill-legs hill-legs-${i}`}>
+                  <Shapes shapes={frame} />
+                </g>
+              ))}
+              <Shapes shapes={RIDER_BODY} />
               {/* The arm on the handlebar... */}
-              <line
-                className="hill-arm"
-                x1={3}
-                y1={-30}
-                x2={8}
-                y2={-20}
-                stroke="#ea580c"
-                strokeWidth={2.5}
-              />
-              {/* ...or, halfway up, raised and waving (it turns at the shoulder). */}
-              <g transform="translate(3 -30)">
-                <line
-                  className="hill-wave-arm"
-                  x1={0}
-                  y1={0}
-                  x2={3}
-                  y2={-11}
-                  stroke="#ea580c"
-                  strokeWidth={2.5}
-                />
+              <g className="hill-arm">
+                <Shapes shapes={HANDLEBAR_ARM} />
               </g>
-              <line
-                x1={-3}
-                y1={-19}
-                x2={1}
-                y2={-9}
-                stroke={colors.ink}
-                strokeWidth={2.5}
-              />
-              <circle cx={6} cy={-35} r={4.5} fill={colors.ink} />
+              {/* ...or, halfway up, raised and waving (it turns at the shoulder). */}
+              <g transform={`translate(${SHOULDER.x} ${SHOULDER.y})`}>
+                <g className="hill-wave-arm">
+                  <Shapes shapes={WAVE_ARM} />
+                </g>
+              </g>
+              <Shapes shapes={RIDER_HEAD} />
             </g>
-            {/* The rider celebrating: off the bike, arms up, hopping, with confetti */}
-            <g className="hill-rider-cheer" strokeLinecap="round">
+
+            {/* At the finish: off the bike, arms up, hopping, with confetti */}
+            <g className="hill-rider-cheer">
               <g className="hill-cheer-jump">
-                <path
-                  d="M-25,0 L-22,-10 L-19,0"
-                  stroke={colors.ink}
-                  strokeWidth={2.5}
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-                <line
-                  x1={-22}
-                  y1={-10}
-                  x2={-22}
-                  y2={-21}
-                  stroke="#ea580c"
-                  strokeWidth={4}
-                />
-                <path
-                  d="M-29,-31 L-22,-19 L-15,-31"
-                  stroke="#ea580c"
-                  strokeWidth={2.5}
-                  fill="none"
-                  strokeLinejoin="round"
-                />
-                <circle cx={-22} cy={-27} r={4.5} fill={colors.ink} />
+                <Shapes shapes={CHEER} />
               </g>
               {CONFETTI.map(({ x, y, color }) => (
                 <rect
@@ -379,42 +389,19 @@ export function HillScene({
                 />
               ))}
             </g>
-            {/* The rider resting: sitting on the grass behind the bike, hand on knee */}
-            <g className="hill-rider-rest" strokeLinecap="round">
-              <path
-                d="M-26,-2 L-19,-8 L-13,-1"
-                stroke={colors.ink}
-                strokeWidth={2.5}
-                fill="none"
-                strokeLinejoin="round"
-              />
-              <line
-                x1={-26}
-                y1={-3}
-                x2={-24}
-                y2={-15}
-                stroke="#ea580c"
-                strokeWidth={4}
-              />
-              <line
-                x1={-24}
-                y1={-13}
-                x2={-19}
-                y2={-8}
-                stroke="#ea580c"
-                strokeWidth={2.5}
-              />
-              <circle cx={-23} cy={-20} r={4.5} fill={colors.ink} />
+
+            {/* Then resting: sitting on the grass behind the bike, eyes closed */}
+            <g className="hill-rider-rest">
+              <Shapes shapes={REST} />
               <text className="hill-zzz" fill={colors.ink}>
-                <tspan x={-16} y={-26} fontSize={6}>
-                  z
-                </tspan>
-                <tspan x={-11} y={-31} fontSize={8}>
-                  z
-                </tspan>
+                {ZZZ.map((z) => (
+                  <tspan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
+                    z
+                  </tspan>
+                ))}
               </text>
             </g>
-            {ride.count > 0 && (
+            {ride.count > 0 && !ride.intro && (
               <text
                 className="hill-gain"
                 x={0}

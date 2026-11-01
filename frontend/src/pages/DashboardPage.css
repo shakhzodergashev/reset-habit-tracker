@@ -3,41 +3,56 @@
   gap: var(--space-5);
 }
 
-.dashboard-summary {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: var(--space-3);
-  flex-wrap: wrap;
-}
-
-.dashboard-summary > div {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.dashboard-summary p {
-  color: var(--color-text-muted);
-}
-
-/* Today's climb: the hill on top, the numbers under it. */
+/* The hill on top, the "Daily Progress" card overlapping its bottom edge. */
 .today-climb {
   padding: 0;
   overflow: hidden; /* keeps the hill inside the rounded corners */
 }
 
-.today-climb-text {
-  display: grid;
-  gap: 2px;
-  padding: var(--space-4);
-  color: var(--color-text-muted);
+.daily-progress {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-4) var(--space-5);
 }
 
-.today-climb-text strong {
+.daily-progress h2 {
+  font-size: 1.25rem;
+}
+
+.daily-progress p {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+}
+
+/* A title with a round button next to it ("Habits  +"). */
+.section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.section-title h2 {
+  font-size: 1.35rem;
+}
+
+.round-button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
   color: var(--color-text);
-  font-size: 1.5rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
+  box-shadow: var(--shadow-card);
+}
+
+.round-button:hover {
+  color: var(--color-accent);
+  border-color: var(--color-accent);
 }
 
 .habit-list {
@@ -46,4 +61,14 @@
   padding: 0;
   display: grid;
   gap: var(--space-3);
+}
+
+.dashboard-archived-link {
+  justify-self: center;
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+}
+
+.dashboard-archived-link:hover {
+  color: var(--color-accent);
 }

@@ -2,7 +2,10 @@ import { Navigate } from 'react-router';
 import { useAuth } from '../auth/auth-context';
 import { AuthForm, type AuthMode } from '../components/AuthForm';
 
-/** The /login and /register pages. Already logged in? Go straight home. */
+/**
+ * The /login and /register pages. Already logged in? Go straight home,
+ * or, just after registering, to /welcome to pick a first climb.
+ */
 export function AuthPage({ mode }: { mode: AuthMode }) {
   const { user, isChecking } = useAuth();
 
@@ -10,7 +13,7 @@ export function AuthPage({ mode }: { mode: AuthMode }) {
     return <p className="status-message">Loading…</p>;
   }
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={mode === 'register' ? '/welcome' : '/'} replace />;
   }
   return <AuthForm mode={mode} />;
 }

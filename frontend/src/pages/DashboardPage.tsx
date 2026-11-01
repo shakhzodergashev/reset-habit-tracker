@@ -2,30 +2,37 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
 import { ApiError } from '../api/client';
 import { markDone, undoDone } from '../api/completions';
-import { getDashboard, type Dashboard, type Habit } from '../api/dashboard';
+import {
+  getDashboard,
+  type Dashboard,
+  type DashboardHabit,
+} from '../api/dashboard';
 import { HabitCard } from '../components/HabitCard';
 import { HillScene } from '../components/HillScene';
+import { Icon } from '../components/Icon';
+import { ProgressRing } from '../components/ProgressRing';
+import { WeekStrip } from '../components/WeekStrip';
 import { useWeather } from '../journey/useWeather';
-import { formatLongDate } from '../utils/dates';
 import './DashboardPage.css';
 
 function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The Today tab: today's climb (with the real weather) and one card per active habit. */
+/** The Today tab: the week, today's climb (with the real weather) and your habits. */
 export function DashboardPage() {
   const weather = useWeather();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);
+  const [date, setDate] = useState<string | undefined>(undefined); // undefined = today
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingHabitId, setPendingHabitId] = useState<string | null>(null);
 
-  // Load the dashboard once, when the page first appears.
+  // Load the day: when the page opens, and again when another day is picked.
   useEffect(() => {
     let ignore = false; // set to true if the page goes away before the answer arrives
 
-    getDashboard()
+    getDashboard(date)
       .then((data) => {
         if (!ignore) setDashboard(data);
       })
@@ -34,27 +41,26 @@ export function DashboardPage() {
           setLoadError(errorMessage(err, 'Could not load your habits.'));
       });
 
-    // Cleanup: React calls this when the page goes away.
+    // Cleanup: React calls this when the page goes away (or the day changes).
     return () => {
       ignore = true;
     };
-  }, []);
+  }, [date]);
 
-  /** Tap on a card: mark it done for today, or undo it, then reload the numbers. */
-  async function toggleHabit(habit: Habit) {
+  /** The tick circle: mark it done for the day shown, or undo it, then reload. */
+  async function toggleHabit(habit: DashboardHabit) {
     if (!dashboard) return;
     setActionError(null);
     setPendingHabitId(habit.id);
 
     try {
-      // "Today" comes from the server, in the user's own time zone.
-      if (habit.completedToday) {
-        await undoDone(habit.id, dashboard.today);
+      if (habit.completedOnDate) {
+        await undoDone(habit.id, dashboard.date);
       } else {
-        await markDone(habit.id, dashboard.today);
+        await markDone(habit.id, dashboard.date);
       }
-      // Reload so the count, order and streaks are exactly what the server calculated.
-      setDashboard(await getDashboard());
+      // Reload so the counts, order and streaks are exactly what the server calculated.
+      setDashboard(await getDashboard(dashboard.date));
     } catch (err) {
       setActionError(
         errorMessage(err, 'Could not save that. Please try again.'),
@@ -64,7 +70,6 @@ export function DashboardPage() {
     }
   }
 
-  // Three possible states: error, still loading, or loaded.
   if (loadError) {
     return (
       <p className="form-error" role="alert">
@@ -78,43 +83,45 @@ export function DashboardPage() {
 
   const done = dashboard.completedCount;
   const total = dashboard.totalCount;
-  const message =
-    total === 0
-      ? 'Add a habit to start today’s climb.'
-      : done === total
-        ? 'You reached the finish. Great day! 🎉'
-        : `${total - done} more to reach the finish.`;
+  const percent = total === 0 ? 0 : Math.round((done / total) * 100);
+  const isToday = dashboard.date === dashboard.today;
 
   return (
     <div className="dashboard">
-      <div className="dashboard-summary">
-        <div>
-          <h2>Today</h2>
-          <p>{formatLongDate(dashboard.today)}</p>
-        </div>
-        <Link className="button button-primary" to="/habits/new">
-          + New habit
-        </Link>
-      </div>
+      <WeekStrip
+        today={dashboard.today}
+        selected={dashboard.date}
+        onSelect={(day) => setDate(day === dashboard.today ? undefined : day)}
+      />
 
-      {/* Today's climb: each habit done moves the cyclist one share up to the flag. */}
+      {/* The climb for the day shown: each habit done moves the cyclist one share up. */}
       <section className="card today-climb">
         <HillScene
+          // A new hill when another day is picked, so the cyclist starts from there.
+          key={dashboard.date}
           progress={total === 0 ? 0 : done / total}
           weather={weather}
           gainText={() => '+1 ✓'}
-          label={`Today's climb: ${done} of ${total} habits done`}
+          label={`${isToday ? 'Today' : 'That day'}: ${done} of ${total} habits done`}
         />
-        <div className="today-climb-text">
-          <span>
-            <strong>
-              {done} of {total}
-            </strong>{' '}
-            habits done
-          </span>
-          <span>{message}</span>
+        <div className="daily-progress">
+          <div>
+            <h2>{isToday ? 'Daily Progress' : 'That day'}</h2>
+            <p>
+              {done} of {total} habits
+              {total > 0 && done === total && ' · finished! 🎉'}
+            </p>
+          </div>
+          <ProgressRing percent={percent} />
         </div>
       </section>
+
+      <div className="section-title">
+        <h2>Habits</h2>
+        <Link className="round-button" to="/habits/new" aria-label="New habit">
+          <Icon name="plus" />
+        </Link>
+      </div>
 
       {actionError && (
         <p className="form-error" role="alert">
@@ -125,15 +132,16 @@ export function DashboardPage() {
       {dashboard.habits.length === 0 ? (
         <section className="card welcome">
           <h2>No habits yet</h2>
-          <p>Tap “+ New habit” to create your first one.</p>
+          <p>Tap + to create your first one.</p>
         </section>
       ) : (
         <ul className="habit-list">
-          {/* One card per habit. key tells React which card is which. */}
+          {/* One row per habit. key tells React which row is which. */}
           {dashboard.habits.map((habit) => (
             <li key={habit.id}>
               <HabitCard
                 habit={habit}
+                done={habit.completedOnDate}
                 onToggle={() => void toggleHabit(habit)}
                 isPending={pendingHabitId === habit.id}
               />

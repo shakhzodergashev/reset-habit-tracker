@@ -12,11 +12,23 @@
   gap: var(--space-1);
 }
 
+/* The "◌ Reset" logo: an open ring, like a fresh start. */
 .app-title {
-  font-size: 2rem;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 1.7rem;
   font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--color-accent);
+  color: var(--color-text);
+}
+
+.app-logo {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 3.5px solid var(--color-text);
+  border-right-color: transparent;
+  transform: rotate(-30deg);
 }
 
 .app-tagline {

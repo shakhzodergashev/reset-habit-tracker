@@ -3,7 +3,7 @@
   place-items: center;
   flex: none;
   border-radius: 30%;
-  background: var(--color-surface-muted);
+  background: var(--color-accent-soft);
   line-height: 1;
 }
 

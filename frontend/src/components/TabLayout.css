@@ -1,16 +1,17 @@
-/* The bottom tab bar: fixed to the bottom, the same width as the page column. */
+/* The bottom tab bar: a floating rounded bar, the same width as the page column. */
 .tab-bar {
   position: fixed;
   left: 50%;
-  bottom: 0;
+  bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
   transform: translateX(-50%);
-  width: min(640px, 100%);
+  width: min(608px, calc(100% - 2 * var(--space-4)));
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: var(--space-2) var(--space-2)
-    calc(var(--space-2) + env(safe-area-inset-bottom));
+  grid-template-columns: repeat(4, 1fr);
+  padding: var(--space-2);
+  border-radius: 24px;
+  border: 1px solid var(--color-border);
   background: var(--color-bg);
-  border-top: 1px solid var(--color-border);
+  box-shadow: 0 8px 30px rgba(40, 30, 90, 0.12);
   z-index: 10;
 }
 
@@ -19,17 +20,11 @@
   justify-items: center;
   gap: 2px;
   padding: var(--space-1) 0;
-  border-radius: 10px;
+  border-radius: 16px;
   color: var(--color-text-muted);
   font-size: 0.8rem;
   font-weight: 600;
   text-decoration: none;
-}
-
-.tab-icon {
-  font-size: 1.3rem;
-  filter: grayscale(1);
-  opacity: 0.7;
 }
 
 .tab:hover {
@@ -40,12 +35,7 @@
   color: var(--color-accent);
 }
 
-.tab.active .tab-icon {
-  filter: none;
-  opacity: 1;
-}
-
 /* Room at the bottom of the page, so the tab bar never covers the last row. */
 .app:has(.tab-bar) {
-  padding-bottom: calc(var(--space-6) + 72px);
+  padding-bottom: calc(var(--space-6) + 96px);
 }

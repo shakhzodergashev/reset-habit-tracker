@@ -8,8 +8,8 @@ export const HEIGHT = 150;
 // The road up the hill: a curve from bottom left (P0) to top right (P3).
 const P0 = { x: 0, y: 132 };
 const P1 = { x: 130, y: 132 };
-const P2 = { x: 190, y: 58 };
-const P3 = { x: 320, y: 50 };
+const P2 = { x: 190, y: 70 };
+const P3 = { x: 320, y: 62 };
 export const ROAD = `M${P0.x},${P0.y} C${P1.x},${P1.y} ${P2.x},${P2.y} ${P3.x},${P3.y}`;
 
 // Progress 0 = the bottom of the road, 1 = the finish flag near the top.
@@ -44,3 +44,6 @@ export function riderAt(progress: number) {
 
 /** Where the finish flag stands: just past the cyclist's last spot. */
 export const FLAG = pointOnRoad(FINISH + 0.03);
+
+/** How much bigger than its drawing units the kid on the bike is shown. */
+export const KID_SCALE = 1.3;

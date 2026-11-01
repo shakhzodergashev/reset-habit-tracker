@@ -1,0 +1,53 @@
+.week-strip {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: var(--space-1);
+}
+
+.week-day {
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: var(--space-2) 0;
+  border: none;
+  border-radius: 14px;
+  background: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+}
+
+.week-day:hover:not(:disabled) {
+  background: var(--color-surface-muted);
+}
+
+.week-day-name {
+  font-size: 0.8rem;
+}
+
+.week-day-number {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Today: purple number, even when another day is picked. */
+.week-day.is-today .week-day-number {
+  color: var(--color-accent);
+}
+
+/* The picked day: a filled purple pill. */
+.week-day[aria-pressed='true'] {
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  box-shadow: 0 4px 12px rgba(115, 87, 234, 0.35);
+}
+
+.week-day[aria-pressed='true'] .week-day-number {
+  color: var(--color-on-accent);
+}
+
+/* Days still to come. */
+.week-day:disabled {
+  cursor: default;
+  opacity: 0.4;
+}
