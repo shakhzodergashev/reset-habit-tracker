@@ -1,14 +1,20 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
-import { addDays, toDbDate, todayInTimeZone } from '../src/common/dates/dates';
+import { addDays, todayInTimeZone } from '../src/common/dates/dates';
 import { PrismaService } from '../src/prisma/prisma.service';
-import { createTestApp, registerUser } from './helpers';
+import {
+  createBackdatedHabit,
+  createTestApp,
+  markDone,
+  registerUser,
+} from './helpers';
 
 interface HabitResponse {
   id: string;
   name: string;
   currentStreak: number;
+  bestStreak: number;
   completedToday: boolean;
 }
 
@@ -17,7 +23,6 @@ interface DashboardResponse {
   timeZone: string;
   completedCount: number;
   totalCount: number;
-  journeyDays: number;
   habits: HabitResponse[];
 }
 
@@ -49,28 +54,10 @@ describe('Streaks and dashboard (e2e)', () => {
   const auth = (token: string) => ({ Authorization: `Bearer ${token}` });
   const daysAgo = (n: number) => addDays(today, -n);
 
-  /** Creates a habit that "started" 10 days ago, so past days can be marked. */
-  async function createHabit(token: string, name: string): Promise<string> {
-    const res = await api()
-      .post('/habits')
-      .set(auth(token))
-      .send({ name })
-      .expect(201);
-    const habit = res.body as { id: string; startDate: string };
-
-    await prisma.habit.update({
-      where: { id: habit.id },
-      data: { startDate: toDbDate(addDays(habit.startDate, -10)) },
-    });
-    return habit.id;
-  }
-
-  async function mark(habitId: string, date: string) {
-    await api()
-      .put(`/habits/${habitId}/completions/${date}`)
-      .set(auth(aliToken))
-      .expect(200);
-  }
+  const createHabit = (token: string, name: string) =>
+    createBackdatedHabit(app, token, name);
+  const mark = (habitId: string, date: string) =>
+    markDone(app, aliToken, habitId, date);
 
   async function unmark(habitId: string, date: string) {
     await api()
@@ -131,6 +118,8 @@ describe('Streaks and dashboard (e2e)', () => {
 
       await mark(habitId, today);
       expect((await getHabit(habitId)).currentStreak).toBe(1);
+      // The best streak remembers the earlier run of 2.
+      expect((await getHabit(habitId)).bestStreak).toBe(2);
     });
 
     it('update immediately when a past day is changed', async () => {
@@ -153,10 +142,10 @@ describe('Streaks and dashboard (e2e)', () => {
     it('shows today in the user’s time zone, with empty counts at first', async () => {
       expect(await getDashboard(aliToken)).toEqual({
         today,
+        date: today,
         timeZone: TASHKENT,
         completedCount: 0,
         totalCount: 0,
-        journeyDays: 0,
         habits: [],
       });
     });
@@ -218,32 +207,50 @@ describe('Streaks and dashboard (e2e)', () => {
       expect(bobDashboard.habits).toEqual([]);
     });
 
-    it('climbs a share of a day for each habit done that day', async () => {
+    it('shows any past day picked in the week strip', async () => {
       const read = await createHabit(aliToken, 'Read');
       const run = await createHabit(aliToken, 'Run');
+      await mark(run, daysAgo(2));
 
-      await mark(read, daysAgo(5)); // 1 of 2 habits = half a day
-      await mark(read, daysAgo(4));
-      await mark(run, daysAgo(4)); // 2 of 2 = a full day
-      // days 3, 2 and 1 missed: the journey pauses, it does not go down
-      expect((await getDashboard(aliToken)).journeyDays).toBe(1.5);
+      const res = await api()
+        .get(`/dashboard?date=${daysAgo(2)}`)
+        .set(auth(aliToken))
+        .expect(200);
+      const body = res.body as {
+        date: string;
+        completedCount: number;
+        totalCount: number;
+        habits: { id: string; completedOnDate: boolean }[];
+      };
+      expect(body.date).toBe(daysAgo(2));
+      expect(body.completedCount).toBe(1);
+      expect(body.totalCount).toBe(2);
+      // Not done that day first, then done.
+      expect(body.habits.map((h) => [h.id, h.completedOnDate])).toEqual([
+        [read, false],
+        [run, true],
+      ]);
 
-      // A third habit, starting today: from today on, each habit is a third of a day.
+      // A habit that started later does not appear on that day.
       await api()
         .post('/habits')
         .set(auth(aliToken))
-        .send({ name: 'Walk' })
+        .send({ name: 'New' })
         .expect(201);
-      await mark(run, today);
-      expect((await getDashboard(aliToken)).journeyDays).toBe(1.83);
+      const before = await api()
+        .get(`/dashboard?date=${daysAgo(2)}`)
+        .set(auth(aliToken))
+        .expect(200);
+      expect((before.body as { totalCount: number }).totalCount).toBe(2);
+    });
 
-      // Undoing takes that share back out.
-      await unmark(run, today);
-      expect((await getDashboard(aliToken)).journeyDays).toBe(1.5);
-
-      // Each user has their own journey.
-      const bobToken = await registerUser(app, 'bob@example.com', TASHKENT);
-      expect((await getDashboard(bobToken)).journeyDays).toBe(0);
+    it('rejects a future or invalid date', async () => {
+      for (const date of [addDays(today, 1), '2026-02-30', 'yesterday']) {
+        await api()
+          .get(`/dashboard?date=${date}`)
+          .set(auth(aliToken))
+          .expect(400);
+      }
     });
 
     it('requires login', async () => {

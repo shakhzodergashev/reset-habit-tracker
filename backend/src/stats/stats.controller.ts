@@ -9,7 +9,8 @@ import { StatsService } from './stats.service';
 export class StatsController {
   constructor(private readonly statsService: StatsService) {}
 
-  // GET /stats -> { today, yearDays, habitCount, journeyDays, perfectDays, activeDays, totalCompletions }
+  // GET /stats -> { today, habitCount, journeyDays, perfectDays, activeDays,
+  //                 totalCompletions, climb (or null), climbsCompleted }
   @Get()
   get(@CurrentAuth() auth: AuthContext) {
     return this.statsService.get(auth.userId);

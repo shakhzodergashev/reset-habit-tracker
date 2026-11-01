@@ -1,4 +1,24 @@
-import { currentStreak } from './streak';
+import { bestStreak, currentStreak } from './streak';
+
+describe('bestStreak', () => {
+  it('is 0 with no days and 1 for a single day', () => {
+    expect(bestStreak([])).toBe(0);
+    expect(bestStreak(['2026-10-01'])).toBe(1);
+  });
+
+  it('finds the longest run, in any order, across month ends', () => {
+    const days = [
+      '2026-10-20',
+      '2026-09-29',
+      '2026-10-21',
+      '2026-09-30',
+      '2026-10-01',
+      '2026-10-02', // 29 Sep -> 2 Oct: 4 days
+      '2026-10-22',
+    ];
+    expect(bestStreak(days)).toBe(4);
+  });
+});
 
 const TODAY = '2026-10-26';
 

@@ -19,6 +19,22 @@ model User {
 
   habits   Habit[]
   sessions Session[]
+  climbs   Climb[]
+}
+
+/// A climb up the journey hill: the user picks how long it is, then each day they
+/// complete habits moves them up. When one is finished they can start the next.
+model Climb {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  goalDays   Int // 30, 66, 100 or 365
+  startDate  DateTime  @db.Date // the first day that counts (user's local date)
+  finishedOn DateTime? @db.Date // set when the user moves on to the next climb
+  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 model Habit {
@@ -34,8 +50,22 @@ model Habit {
 
   user        User              @relation(fields: [userId], references: [id], onDelete: Cascade)
   completions HabitCompletion[]
+  pauses      HabitPause[]
 
   @@index([userId, isArchived])
+}
+
+/// A time a habit was archived. The journey leaves the habit out of the days
+/// between archivedOn and restoredOn (both of those days still count).
+model HabitPause {
+  id         String    @id @default(uuid()) @db.Uuid
+  habitId    String    @db.Uuid
+  archivedOn DateTime  @db.Date // the last day the habit still counts (user's local date)
+  restoredOn DateTime? @db.Date // the first day it counts again; null = still archived
+
+  habit Habit @relation(fields: [habitId], references: [id], onDelete: Cascade)
+
+  @@index([habitId])
 }
 
 model HabitCompletion {

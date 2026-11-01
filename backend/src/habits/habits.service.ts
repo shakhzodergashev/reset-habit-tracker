@@ -4,7 +4,7 @@ import { Habit } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateHabitDto } from './dto/create-habit.dto';
 import { UpdateHabitDto } from './dto/update-habit.dto';
-import { currentStreak } from './streak';
+import { bestStreak, currentStreak } from './streak';
 
 // Tells Prisma to load each habit's completed days in the same query.
 const WITH_COMPLETION_DATES = {
@@ -29,6 +29,7 @@ export function toHabitResponse(habit: HabitWithDates, today: string) {
     createdAt: habit.createdAt,
     updatedAt: habit.updatedAt,
     currentStreak: currentStreak(days, today),
+    bestStreak: bestStreak(days),
     completedToday: days.includes(today),
   };
 }
@@ -114,14 +115,29 @@ export class HabitsService {
     habitId: string,
     isArchived: boolean,
   ) {
-    await this.findOwnedHabit(userId, habitId);
+    const current = await this.findOwnedHabit(userId, habitId);
+    const today = toDbDate(await this.todayFor(userId));
+
+    // Archiving opens a pause; restoring closes it. Archiving an archived habit
+    // (or restoring an active one) changes nothing, so no extra pause appears.
+    const pause =
+      isArchived && !current.isArchived
+        ? { create: { archivedOn: today } }
+        : !isArchived && current.isArchived
+          ? {
+              updateMany: {
+                where: { restoredOn: null },
+                data: { restoredOn: today },
+              },
+            }
+          : undefined;
 
     const habit = await this.prisma.habit.update({
       where: { id: habitId },
-      data: { isArchived },
+      data: { isArchived, pauses: pause },
       include: WITH_COMPLETION_DATES,
     });
-    return toHabitResponse(habit, await this.todayFor(userId));
+    return toHabitResponse(habit, fromDbDate(today));
   }
 
   /**

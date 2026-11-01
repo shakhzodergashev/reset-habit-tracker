@@ -26,3 +26,17 @@ export function currentStreak(
   }
   return streak;
 }
+
+/** The longest run of days in a row the habit was ever done. */
+export function bestStreak(completedDates: Iterable<string>): number {
+  const done = new Set(completedDates);
+  let best = 0;
+  for (const day of done) {
+    // Only count from the first day of each run, so every run is walked once.
+    if (done.has(addDays(day, -1))) continue;
+    let length = 1;
+    while (done.has(addDays(day, length))) length++;
+    best = Math.max(best, length);
+  }
+  return best;
+}
