@@ -52,6 +52,11 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
           Your session has ended. Please log in again.
         </p>
       )}
+      {auth.accountDeleted && (
+        <p className="form-notice" role="status">
+          Your account and all its data have been deleted.
+        </p>
+      )}
 
       <label className="field">
         <span>Email</span>

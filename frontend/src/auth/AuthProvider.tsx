@@ -10,6 +10,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isChecking, setIsChecking] = useState(() => getToken() !== null);
   // True when the backend refused our login while the app was open (expired / logged out elsewhere).
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [accountDeleted, setAccountDeleted] = useState(false);
 
   // Runs once, after the app first appears: check the saved token with GET /me.
   useEffect(() => {
@@ -37,13 +38,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isChecking,
     sessionEnded,
+    accountDeleted,
     login: async (email: string, password: string) => {
       setUser(await authApi.login(email, password));
       setSessionEnded(false);
+      setAccountDeleted(false);
     },
     register: async (email: string, password: string) => {
       setUser(await authApi.register(email, password));
       setSessionEnded(false);
+      setAccountDeleted(false);
     },
     logout: async () => {
       try {
@@ -53,6 +57,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(null);
       setSessionEnded(false);
+    },
+    deleteAccount: async (password: string) => {
+      await authApi.deleteAccount(password); // throws (and keeps you logged in) if the password is wrong
+      setUser(null);
+      setAccountDeleted(true);
     },
   };
 

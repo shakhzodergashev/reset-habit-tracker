@@ -1,0 +1,24 @@
+.account-card {
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.account-card p {
+  color: var(--color-text-muted);
+}
+
+.account-form {
+  display: grid;
+  gap: var(--space-3);
+  width: 100%;
+}
+
+/* The delete card has a red edge, so it's clearly different from everything else. */
+.account-card.is-danger {
+  border-color: var(--color-danger);
+}
+
+.account-card.is-danger h3 {
+  color: var(--color-danger);
+}

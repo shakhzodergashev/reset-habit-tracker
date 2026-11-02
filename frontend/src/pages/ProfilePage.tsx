@@ -8,6 +8,10 @@ import {
   startClimb,
 } from '../api/stats';
 import { useAuth } from '../auth/auth-context';
+import {
+  ChangePasswordCard,
+  DeleteAccountCard,
+} from '../components/AccountCards';
 import { ClimbPicker } from '../components/ClimbPicker';
 import { formatLongDate } from '../utils/dates';
 import './ProfilePage.css';
@@ -107,6 +111,7 @@ export function ProfilePage() {
 
       <div className="col">
         <ClimbSetting />
+        <ChangePasswordCard />
 
         <p className="profile-note">
           The weather on your hills uses your location. It goes straight to
@@ -114,12 +119,15 @@ export function ProfilePage() {
         </p>
 
         <button
-          className="button button-danger"
+          className="button button-secondary"
           type="button"
           onClick={() => void logout()}
         >
           Log out
         </button>
+
+        {/* Last, so it's never tapped by accident. */}
+        <DeleteAccountCard />
       </div>
     </div>
   );

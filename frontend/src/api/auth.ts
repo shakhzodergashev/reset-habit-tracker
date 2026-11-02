@@ -48,3 +48,20 @@ export async function logout(): Promise<void> {
 export function getMe(): Promise<User> {
   return apiRequest<User>('/me');
 }
+
+/** Changes the password. Other devices are logged out; this one stays logged in. */
+export function changePassword(
+  currentPassword: string,
+  newPassword: string,
+): Promise<void> {
+  return apiRequest<void>('/me/password', {
+    method: 'PATCH',
+    body: { currentPassword, newPassword },
+  });
+}
+
+/** Deletes the account and everything in it, for good. */
+export async function deleteAccount(password: string): Promise<void> {
+  await apiRequest<void>('/me', { method: 'DELETE', body: { password } });
+  setToken(null); // the login is gone with the account
+}
