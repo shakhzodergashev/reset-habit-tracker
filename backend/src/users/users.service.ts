@@ -9,14 +9,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { ChangePasswordDto } from './dto/change-password.dto';
 import { DeleteMeDto } from './dto/delete-me.dto';
 import { UpdateMeDto } from './dto/update-me.dto';
-
-// The user fields that are safe to send to the client (never the password hash).
-const PUBLIC_USER_FIELDS = {
-  id: true,
-  email: true,
-  timeZone: true,
-  createdAt: true,
-} as const;
+import { PUBLIC_USER_FIELDS } from './public-user';
 
 @Injectable()
 export class UsersService {
@@ -36,7 +29,8 @@ export class UsersService {
   updateMe(userId: string, dto: UpdateMeDto) {
     return this.prisma.user.update({
       where: { id: userId },
-      data: { timeZone: dto.timeZone },
+      // Fields left out are not changed.
+      data: { timeZone: dto.timeZone, climber: dto.climber },
       select: PUBLIC_USER_FIELDS,
     });
   }

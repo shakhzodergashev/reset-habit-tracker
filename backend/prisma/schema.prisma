@@ -15,6 +15,7 @@ model User {
   email        String   @unique @db.VarChar(254) // stored lowercase
   passwordHash String   @db.VarChar(100)
   timeZone     String   @default("UTC") @db.VarChar(64) // IANA name, e.g. "Asia/Tashkent"
+  climber      String   @default("boy") @db.VarChar(8) // who climbs the hill: "boy" or "girl"
   createdAt    DateTime @default(now()) @db.Timestamptz(3)
 
   habits   Habit[]

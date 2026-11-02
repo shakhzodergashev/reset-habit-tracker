@@ -320,4 +320,38 @@ describe('Habits (e2e)', () => {
       expect(await listHabits(aliToken)).toEqual([READING.name]);
     });
   });
+
+  describe('DELETE /habits/:id', () => {
+    it('deletes the habit and its history for good', async () => {
+      const habit = await createHabit(aliToken);
+      await prisma.habitCompletion.create({
+        data: { habitId: habit.id, date: toDbDate(habit.startDate) },
+      });
+      await api()
+        .post(`/habits/${habit.id}/archive`) // leaves a pause row behind
+        .set(auth(aliToken))
+        .expect(200);
+
+      await api().delete(`/habits/${habit.id}`).set(auth(aliToken)).expect(204);
+
+      await api().get(`/habits/${habit.id}`).set(auth(aliToken)).expect(404);
+      const where = { habitId: habit.id };
+      expect(await prisma.habitCompletion.count({ where })).toBe(0);
+      expect(await prisma.habitPause.count({ where })).toBe(0);
+    });
+
+    it('does not let another user delete the habit', async () => {
+      const habit = await createHabit(aliToken);
+
+      await api().delete(`/habits/${habit.id}`).set(auth(bobToken)).expect(404);
+      expect(await listHabits(aliToken)).toEqual([READING.name]);
+    });
+
+    it('gives 404 for a missing habit', async () => {
+      await api()
+        .delete(`/habits/${MISSING_ID}`)
+        .set(auth(aliToken))
+        .expect(404);
+    });
+  });
 });

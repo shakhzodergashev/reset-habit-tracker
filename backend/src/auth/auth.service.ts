@@ -5,8 +5,13 @@ import {
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
-import { Prisma, User } from '../generated/prisma/client';
+import { Prisma } from '../generated/prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import {
+  PUBLIC_USER_FIELDS,
+  toPublicUser,
+  type PublicUser,
+} from '../users/public-user';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
@@ -18,8 +23,6 @@ const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60;
 
 // Used when the email does not exist, so a failed login always takes the same time.
 const DUMMY_HASH = bcrypt.hashSync('dummy-password', BCRYPT_ROUNDS);
-
-type PublicUser = Pick<User, 'id' | 'email' | 'timeZone' | 'createdAt'>;
 
 @Injectable()
 export class AuthService {
@@ -36,7 +39,7 @@ export class AuthService {
       user = await this.prisma.user.create({
         data: { email: dto.email, passwordHash, timeZone: dto.timeZone },
         // Never send the password hash back to the client.
-        select: { id: true, email: true, timeZone: true, createdAt: true },
+        select: PUBLIC_USER_FIELDS,
       });
     } catch (error) {
       // P2002 = unique constraint failed, i.e. this email is already registered.
@@ -96,14 +99,6 @@ export class AuthService {
       { expiresIn: SESSION_DURATION_SECONDS },
     );
 
-    return {
-      accessToken,
-      user: {
-        id: user.id,
-        email: user.email,
-        timeZone: user.timeZone,
-        createdAt: user.createdAt,
-      },
-    };
+    return { accessToken, user: toPublicUser(user) };
   }
 }

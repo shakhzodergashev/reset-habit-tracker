@@ -110,6 +110,15 @@ export class HabitsService {
     return this.setArchived(userId, habitId, false);
   }
 
+  /**
+   * Deletes the habit for good. Its ticks and pauses go with it (the database
+   * cascades), so it also stops counting in the climb and insights.
+   */
+  async remove(userId: string, habitId: string): Promise<void> {
+    await this.findOwnedHabit(userId, habitId);
+    await this.prisma.habit.delete({ where: { id: habitId } });
+  }
+
   private async setArchived(
     userId: string,
     habitId: string,

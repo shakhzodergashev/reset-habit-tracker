@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   HttpStatus,
@@ -56,6 +57,16 @@ export class HabitsController {
     @Body() dto: UpdateHabitDto,
   ) {
     return this.habitsService.update(auth.userId, id, dto);
+  }
+
+  // DELETE /habits/:id -> 204, the habit and its history are gone for good
+  @Delete(':id')
+  @HttpCode(HttpStatus.NO_CONTENT)
+  remove(
+    @CurrentAuth() auth: AuthContext,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.habitsService.remove(auth.userId, id);
   }
 
   // POST /habits/:id/archive -> 200 with the habit, now archived

@@ -10,6 +10,7 @@ interface PublicUser {
   id: string;
   email: string;
   timeZone: string;
+  climber: string;
   createdAt: string;
 }
 
@@ -71,6 +72,7 @@ describe('Accounts (e2e)', () => {
 
       expect(typeof body.accessToken).toBe('string');
       expect(Object.keys(body.user).sort()).toEqual([
+        'climber',
         'createdAt',
         'email',
         'id',
@@ -247,6 +249,42 @@ describe('Accounts (e2e)', () => {
         .patch('/me')
         .set('Authorization', `Bearer ${accessToken}`)
         .send({ timeZone: 'Europe/London', email: 'hacker@example.com' })
+        .expect(400);
+    });
+
+    it('starts everyone as the boy, and switches the climber', async () => {
+      const { accessToken, user } = await registerAli();
+      expect(user.climber).toBe('boy');
+
+      const res = await api()
+        .patch('/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ climber: 'girl' })
+        .expect(200);
+
+      // Only the climber changed; the time zone stayed.
+      expect(res.body as PublicUser).toMatchObject({
+        climber: 'girl',
+        timeZone: 'Asia/Tashkent',
+      });
+    });
+
+    it('lists the time zones the apps can pick from', async () => {
+      const res = await api().get('/time-zones').expect(200);
+      const zones = res.body as string[];
+
+      expect(zones).toContain('Asia/Tashkent');
+      expect(zones).toContain('UTC');
+      expect(zones).toEqual([...zones].sort());
+    });
+
+    it('rejects a climber that is not boy or girl', async () => {
+      const { accessToken } = await registerAli();
+
+      await api()
+        .patch('/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ climber: 'dragon' })
         .expect(400);
     });
   });
