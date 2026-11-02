@@ -267,6 +267,27 @@
   opacity: 0.8;
 }
 
+/* Reading in the daytime: now and then a page turns over. */
+.hill-page {
+  opacity: 0;
+}
+
+.pose-rest .hill-page {
+  animation: page-turn 4s step-end infinite;
+}
+
+@keyframes page-turn {
+  0% {
+    opacity: 0;
+  }
+  80% {
+    opacity: 1;
+  }
+  88% {
+    opacity: 0;
+  }
+}
+
 .pose-rest .hill-zzz {
   animation: zzz-float 2.4s ease-in-out infinite;
 }
@@ -279,6 +300,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .pose-rest .hill-page,
   .is-riding .hill-legs,
   .is-waving .hill-arm,
   .pose-rest .hill-zzz,

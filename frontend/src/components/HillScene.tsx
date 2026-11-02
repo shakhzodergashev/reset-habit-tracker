@@ -11,6 +11,8 @@ import {
   CHEER,
   HANDLEBAR_ARM,
   LEG_FRAMES,
+  PAGE_TURN,
+  READ,
   REST,
   RIDER_BODY,
   RIDER_HEAD,
@@ -390,16 +392,28 @@ export function HillScene({
               ))}
             </g>
 
-            {/* Then resting: sitting on the grass behind the bike, eyes closed */}
+            {/* Then resting on the grass behind the bike: reading a book in the
+                daytime, asleep at night. */}
             <g className="hill-rider-rest">
-              <Shapes shapes={REST} />
-              <text className="hill-zzz" fill={colors.ink}>
-                {ZZZ.map((z) => (
-                  <tspan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
-                    z
-                  </tspan>
-                ))}
-              </text>
+              {weather.isDay ? (
+                <>
+                  <Shapes shapes={READ} />
+                  <g className="hill-page">
+                    <Shapes shapes={PAGE_TURN} />
+                  </g>
+                </>
+              ) : (
+                <>
+                  <Shapes shapes={REST} />
+                  <text className="hill-zzz" fill={colors.ink}>
+                    {ZZZ.map((z) => (
+                      <tspan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
+                        z
+                      </tspan>
+                    ))}
+                  </text>
+                </>
+              )}
             </g>
             {ride.count > 0 && !ride.intro && (
               <text

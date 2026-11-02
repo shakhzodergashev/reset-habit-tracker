@@ -18,6 +18,8 @@ import {
   CHEER,
   HANDLEBAR_ARM,
   LEG_FRAMES,
+  PAGE_TURN,
+  READ,
   REST,
   RIDER_BODY,
   RIDER_HEAD,
@@ -341,6 +343,20 @@ export function HillScene({
     return () => loop.stop();
   }, [pose, onBike, cheering, resting, hop]);
 
+  // Reading in the daytime: now and then a page turns over.
+  const pageTurn = useRef(new Animated.Value(0)).current;
+  const isReading = pose === 'rest' && weather.isDay;
+  useEffect(() => {
+    if (!isReading) return;
+    const flip = (toValue: number) =>
+      Animated.timing(pageTurn, { toValue, duration: 1, useNativeDriver: true });
+    const loop = Animated.loop(
+      Animated.sequence([Animated.delay(3200), flip(1), Animated.delay(350), flip(0)]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [isReading, pageTurn]);
+
   // The waving arm swings back and forth at the shoulder; the handlebar arm hides meanwhile.
   const waveAngle = waving.interpolate({
     inputRange: [0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875, 1],
@@ -541,18 +557,28 @@ export function HillScene({
               </Animated.View>
             </Animated.View>
 
-            {/* Then resting: sitting on the grass behind the bike, eyes closed */}
+            {/* Then resting on the grass behind the bike: reading a book in the
+                daytime, asleep at night. */}
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: resting }]}>
-              <Svg width="100%" height="100%" viewBox={KID_VIEWBOX}>
-                <Shapes shapes={REST} />
-                <SvgText fill={colors.ink} fontWeight="800" opacity={0.8}>
-                  {ZZZ.map((z) => (
-                    <TSpan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
-                      z
-                    </TSpan>
-                  ))}
-                </SvgText>
-              </Svg>
+              {weather.isDay ? (
+                <>
+                  <KidSvg shapes={READ} />
+                  <Animated.View style={[StyleSheet.absoluteFill, { opacity: pageTurn }]}>
+                    <KidSvg shapes={PAGE_TURN} />
+                  </Animated.View>
+                </>
+              ) : (
+                <Svg width="100%" height="100%" viewBox={KID_VIEWBOX}>
+                  <Shapes shapes={REST} />
+                  <SvgText fill={colors.ink} fontWeight="800" opacity={0.8}>
+                    {ZZZ.map((z) => (
+                      <TSpan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
+                        z
+                      </TSpan>
+                    ))}
+                  </SvgText>
+                </Svg>
+              )}
             </Animated.View>
 
             {/* "+1", floating up and fading after a tick */}

@@ -33,14 +33,16 @@ const dot = (cx: number, cy: number, r: number, fill: string): Shape => ({
 });
 
 /** A round head with a cap, facing right. (x, y) is the middle of the head. */
-function head(x: number, y: number, face: 'smile' | 'grin' | 'sleep'): Shape[] {
+function head(x: number, y: number, face: 'smile' | 'grin' | 'sleep' | 'read'): Shape[] {
   const shapes: Shape[] = [
     dot(x - 4.4, y + 0.5, 1.6, HAIR), // hair peeking out at the back
     dot(x, y, 5.5, SKIN),
     dot(x - 2, y + 0.5, 1.2, '#eab38c'), // ear
     dot(x + 3, y + 1.4, 0.9, '#f4a3a3'), // rosy cheek
   ];
-  if (face === 'sleep') {
+  if (face === 'read') {
+    shapes.push(dot(x + 2.4, y + 0.3, 0.75, FACE)); // eye looking down at the book
+  } else if (face === 'sleep') {
     shapes.push(line(`M${x + 1.2},${y - 0.5} q0.8,0.6 1.6,0`, FACE, 0.6));
   } else {
     shapes.push(dot(x + 2.3, y - 0.6, 0.75, FACE)); // eye
@@ -165,7 +167,44 @@ export const CHEER: Shape[] = [
   ...head(-22, -25.5, 'grin'),
 ];
 
-/** Sitting on the grass behind the bike, hand on knee, eyes closed. */
+/** In the daytime: sitting on the grass behind the bike, reading a book. */
+export const READ: Shape[] = [
+  { kind: 'path', d: 'M-34,-6.5 h5.5 v6 h-5.5 Z', fill: BACKPACK }, // backpack on the grass
+  line('M-25,-3.5 L-19.5,-9.5 L-14.5,-1', SKIN, 2.6),
+  line('M-15.5,-0.6 L-12.5,-0.6', SHOE, 2.2),
+  line('M-25.5,-4 L-26.5,-13.5', SHIRT, 6),
+  line('M-27,-3.8 L-22.6,-5.2', SHORTS, 4.6),
+  ...head(-26, -19.5, 'read'),
+  // The open book, resting on the knee: a red cover with two white pages.
+  {
+    kind: 'path',
+    d: 'M-23.6,-15.4 L-20,-13.6 L-16.4,-15.4 L-16.4,-10.4 L-20,-8.6 L-23.6,-10.4 Z',
+    fill: '#e11d48',
+  },
+  {
+    kind: 'path',
+    d: 'M-23,-14.6 L-20,-13 L-20,-9.4 L-23,-11 Z',
+    fill: '#ffffff',
+  },
+  {
+    kind: 'path',
+    d: 'M-20,-13 L-17,-14.6 L-17,-11 L-20,-9.4 Z',
+    fill: '#ffffff',
+  },
+  // The arm holding the book.
+  line('M-26,-12.5 L-23.5,-10.5 L-21.5,-10.3', SKIN, 2.3),
+];
+
+/** A page being turned: shown now and then over the right-hand page. */
+export const PAGE_TURN: Shape[] = [
+  {
+    kind: 'path',
+    d: 'M-20,-13 L-18.4,-16 L-18.4,-12.4 L-20,-9.4 Z',
+    fill: '#f1f0f7',
+  },
+];
+
+/** At night: sitting on the grass behind the bike, hand on knee, asleep. */
 export const REST: Shape[] = [
   { kind: 'path', d: 'M-34,-6.5 h5.5 v6 h-5.5 Z', fill: BACKPACK }, // backpack on the grass
   line('M-25,-3.5 L-19.5,-9.5 L-14.5,-1', SKIN, 2.6),
