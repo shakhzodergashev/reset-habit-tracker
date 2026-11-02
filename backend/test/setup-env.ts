@@ -7,6 +7,10 @@ import { parseEnv } from 'node:util';
 //    its own copy of process.env, which loadEnvFile cannot see.)
 Object.assign(process.env, parseEnv(readFileSync('.env.test', 'utf8')));
 
+// Tests make many requests quickly, so the rate limit is off
+// (the rate-limit test turns it back on for itself).
+process.env.RATE_LIMIT_OFF = '1';
+
 // 2. Safety lock: e2e tests delete data, so never let them touch another database.
 if (!process.env.DATABASE_URL?.includes('/reset_test')) {
   throw new Error(

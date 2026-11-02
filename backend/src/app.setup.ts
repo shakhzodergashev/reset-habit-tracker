@@ -1,10 +1,14 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
+import helmet from 'helmet';
 
 /**
  * App-wide settings, shared by main.ts and the e2e tests
  * so the tests run exactly the same app as production.
  */
 export function configureApp(app: INestApplication): void {
+  // Security headers on every response (e.g. no sniffing, no framing).
+  app.use(helmet());
+
   // Check every request body against its DTO rules.
   app.useGlobalPipes(
     new ValidationPipe({
