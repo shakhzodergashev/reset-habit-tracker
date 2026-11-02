@@ -48,3 +48,54 @@
   color: var(--color-text-muted);
   text-align: center;
 }
+
+/* ---------- page layouts ---------- */
+
+.page {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* Two columns on wide screens; one after the other on narrow ones. */
+.two-col {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.col {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+  min-width: 0;
+}
+
+@media (min-width: 960px) {
+  /* Every page with the menu uses the same width, so the logo and menu stay put. */
+  .app:has(.site-nav) {
+    max-width: 1080px;
+  }
+
+  /* Forms and simple lists stay a neat column in the middle. */
+  .page:not(:has(.wide)) {
+    width: 100%;
+    max-width: 640px;
+    justify-self: center;
+  }
+
+  .two-col {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  /* The left column stays in view while the right one scrolls. */
+  .two-col > .col:first-child {
+    position: sticky;
+    top: var(--space-5);
+  }
+
+  /* The Habits tab: two columns of habit cards. */
+  .habit-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

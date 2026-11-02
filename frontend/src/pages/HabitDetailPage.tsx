@@ -90,7 +90,8 @@ export function HabitDetailPage() {
   }
 
   return (
-    <div className="habit-detail">
+    // On wide screens: the habit and its streaks on the left, the calendar on the right.
+    <div className="habit-detail wide">
       <div className="habit-detail-bar">
         <Link to="/habits" aria-label="Back to habits">
           <Icon name="back" size={26} />
@@ -98,28 +99,27 @@ export function HabitDetailPage() {
         <Link to={`/habits/${habit.id}/edit`}>Edit</Link>
       </div>
 
-      <header className="habit-detail-head">
-        <HabitEmoji emoji={habit.emoji} name={habit.name} size={96} />
-        <h2>{habit.name}</h2>
-        <p>
-          {habit.description ?? 'Daily'}
-          {habit.isArchived && ' · Archived'}
-        </p>
-      </header>
+      <div className="two-col">
+        <div className="col">
+          <header className="habit-detail-head">
+            <HabitEmoji emoji={habit.emoji} name={habit.name} size={96} />
+            <h2>{habit.name}</h2>
+            <p>
+              {habit.description ?? 'Daily'}
+              {habit.isArchived && ' · Archived'}
+            </p>
+          </header>
 
-      <Segmented
-        label="View"
-        options={[
-          { value: 'progress', label: 'Progress' },
-          { value: 'history', label: 'History' },
-        ]}
-        value={tab}
-        onChange={setTab}
-      />
+          <Segmented
+            label="View"
+            options={[
+              { value: 'progress', label: 'Progress' },
+              { value: 'history', label: 'History' },
+            ]}
+            value={tab}
+            onChange={setTab}
+          />
 
-      {tab === 'progress' ? (
-        <>
-          <MonthCalendar habit={habit} today={today} onChanged={reloadHabit} />
           <ul className="streak-tiles">
             <li className="card streak-tile">
               <span className="streak-icon is-flame">
@@ -141,10 +141,20 @@ export function HabitDetailPage() {
               <span>Best streak</span>
             </li>
           </ul>
-        </>
-      ) : (
-        <History habit={habit} today={today} />
-      )}
+        </div>
+
+        <div className="col">
+          {tab === 'progress' ? (
+            <MonthCalendar
+              habit={habit}
+              today={today}
+              onChanged={reloadHabit}
+            />
+          ) : (
+            <History habit={habit} today={today} />
+          )}
+        </div>
+      </div>
     </div>
   );
 }

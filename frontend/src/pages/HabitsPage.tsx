@@ -32,7 +32,7 @@ export function HabitsPage() {
   }, []);
 
   return (
-    <div className="dashboard">
+    <div className="dashboard wide">
       <div className="section-title">
         <h2>Habits</h2>
         <Link className="round-button" to="/habits/new" aria-label="New habit">
@@ -52,7 +52,7 @@ export function HabitsPage() {
           <p>Tap + to create your first one.</p>
         </section>
       ) : (
-        <ul className="habit-list">
+        <ul className="habit-list habit-grid">
           {habits.map((habit) => (
             <li key={habit.id}>
               <HabitCard habit={habit} done={habit.completedToday} />

@@ -83,120 +83,127 @@ export function InsightsPage() {
   }
 
   return (
-    <div className="insights-page">
+    // On wide screens: the climb on the left, this week / month / year on the right.
+    <div className="insights-page wide">
       <h2 className="insights-title">Insights</h2>
 
-      {/* Your climb up the hill comes first. */}
-      {stats.climb ? (
-        // A new key per climb: the next climb starts on a fresh hill.
-        <ClimbHill key={stats.climb.startDate} climb={stats.climb} />
-      ) : (
-        <StartClimbCard
-          title="Choose your climb 🚴"
-          text="Pick how long your climb up the hill is. Days you have already done count too."
-          buttonLabel="Start climbing"
-          onStarted={setStats}
-        />
-      )}
-      {stats.climb?.isComplete && (
-        <StartClimbCard
-          title="Climb complete! 🎉"
-          text={`You climbed all ${stats.climb.goalDays} days. Ready for the next one?`}
-          buttonLabel="Start next climb"
-          onStarted={setStats}
-        />
-      )}
+      <div className="two-col">
+        <div className="col">
+          {/* Your climb up the hill comes first. */}
+          {stats.climb ? (
+            // A new key per climb: the next climb starts on a fresh hill.
+            <ClimbHill key={stats.climb.startDate} climb={stats.climb} />
+          ) : (
+            <StartClimbCard
+              title="Choose your climb 🚴"
+              text="Pick how long your climb up the hill is. Days you have already done count too."
+              buttonLabel="Start climbing"
+              onStarted={setStats}
+            />
+          )}
+          {stats.climb?.isComplete && (
+            <StartClimbCard
+              title="Climb complete! 🎉"
+              text={`You climbed all ${stats.climb.goalDays} days. Ready for the next one?`}
+              buttonLabel="Start next climb"
+              onStarted={setStats}
+            />
+          )}
 
-      <Segmented
-        label="Range"
-        options={RANGES}
-        value={range}
-        onChange={setRange}
-      />
-
-      {!insights || insights.range !== range ? (
-        <p className="status-message">Loading…</p>
-      ) : (
-        <>
-          <ul className="insights-tiles">
-            <li className="card insights-tile">
-              <span className="insights-tile-icon is-flame">
-                <Icon name="flame" size={28} />
+          {/* All time, across every climb */}
+          <ul className="insights-tiles is-three">
+            <li className="card insights-tile is-small">
+              <strong>{stats.climbsCompleted}</strong>
+              <span>
+                {stats.climbsCompleted === 1 ? 'climb' : 'climbs'} completed
               </span>
-              <strong>{insights.dayStreak}</strong>
-              <span>Day streak</span>
             </li>
-            <li className="card insights-tile">
-              <span className="insights-tile-icon">
-                <Icon name="target" size={28} />
-              </span>
-              <strong>
-                {insights.completionRate === null
-                  ? '–'
-                  : `${insights.completionRate}%`}
-              </strong>
-              <span>{RANGE_WORD[range]} completion</span>
+            <li className="card insights-tile is-small">
+              <strong>{stats.perfectDays}</strong>
+              <span>perfect days</span>
+            </li>
+            <li className="card insights-tile is-small">
+              <strong>{stats.totalCompletions}</strong>
+              <span>habits ticked</span>
             </li>
           </ul>
+        </div>
 
-          <section className="card insights-section">
-            <h3>Completion</h3>
-            <BarChart
-              bars={insights.bars}
-              highlight={currentBar(insights, stats.today)}
-              showEvery={range === 'month' ? 5 : 1}
-            />
-          </section>
+        <div className="col">
+          <Segmented
+            label="Range"
+            options={RANGES}
+            value={range}
+            onChange={setRange}
+          />
 
-          <section className="insights-section">
-            <h3>Top habits</h3>
-            {insights.topHabits.length === 0 ? (
-              <p className="insights-empty">
-                Your habits will show up here once you have some.
-              </p>
-            ) : (
-              <ul className="card top-habits">
-                {insights.topHabits.map((habit) => (
-                  <li key={habit.id}>
-                    <HabitEmoji
-                      emoji={habit.emoji}
-                      name={habit.name}
-                      size={36}
-                    />
-                    <span className="top-habit-text">
-                      <span className="top-habit-name">{habit.name}</span>
-                      <span className="top-habit-days">
-                        {habit.doneDays}/{habit.possibleDays} days
-                      </span>
-                    </span>
-                    <span className="top-habit-rate">
-                      {habit.rate === null ? '–' : `${habit.rate}%`}
-                    </span>
-                  </li>
-                ))}
+          {!insights || insights.range !== range ? (
+            <p className="status-message">Loading…</p>
+          ) : (
+            <>
+              <ul className="insights-tiles">
+                <li className="card insights-tile">
+                  <span className="insights-tile-icon is-flame">
+                    <Icon name="flame" size={28} />
+                  </span>
+                  <strong>{insights.dayStreak}</strong>
+                  <span>Day streak</span>
+                </li>
+                <li className="card insights-tile">
+                  <span className="insights-tile-icon">
+                    <Icon name="target" size={28} />
+                  </span>
+                  <strong>
+                    {insights.completionRate === null
+                      ? '–'
+                      : `${insights.completionRate}%`}
+                  </strong>
+                  <span>{RANGE_WORD[range]} completion</span>
+                </li>
               </ul>
-            )}
-          </section>
-        </>
-      )}
 
-      {/* All time, across every climb */}
-      <ul className="insights-tiles is-three">
-        <li className="card insights-tile is-small">
-          <strong>{stats.climbsCompleted}</strong>
-          <span>
-            {stats.climbsCompleted === 1 ? 'climb' : 'climbs'} completed
-          </span>
-        </li>
-        <li className="card insights-tile is-small">
-          <strong>{stats.perfectDays}</strong>
-          <span>perfect days</span>
-        </li>
-        <li className="card insights-tile is-small">
-          <strong>{stats.totalCompletions}</strong>
-          <span>habits ticked</span>
-        </li>
-      </ul>
+              <section className="card insights-section">
+                <h3>Completion</h3>
+                <BarChart
+                  bars={insights.bars}
+                  highlight={currentBar(insights, stats.today)}
+                  showEvery={range === 'month' ? 5 : 1}
+                />
+              </section>
+
+              <section className="insights-section">
+                <h3>Top habits</h3>
+                {insights.topHabits.length === 0 ? (
+                  <p className="insights-empty">
+                    Your habits will show up here once you have some.
+                  </p>
+                ) : (
+                  <ul className="card top-habits">
+                    {insights.topHabits.map((habit) => (
+                      <li key={habit.id}>
+                        <HabitEmoji
+                          emoji={habit.emoji}
+                          name={habit.name}
+                          size={36}
+                        />
+                        <span className="top-habit-text">
+                          <span className="top-habit-name">{habit.name}</span>
+                          <span className="top-habit-days">
+                            {habit.doneDays}/{habit.possibleDays} days
+                          </span>
+                        </span>
+                        <span className="top-habit-rate">
+                          {habit.rate === null ? '–' : `${habit.rate}%`}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+              </section>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

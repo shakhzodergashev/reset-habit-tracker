@@ -1,41 +1,76 @@
-/* The bottom tab bar: a floating rounded bar, the same width as the page column. */
-.tab-bar {
-  position: fixed;
-  left: 50%;
-  bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
-  transform: translateX(-50%);
-  width: min(608px, calc(100% - 2 * var(--space-4)));
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  padding: var(--space-2);
-  border-radius: 24px;
-  border: 1px solid var(--color-border);
-  background: var(--color-bg);
-  box-shadow: 0 8px 30px rgba(40, 30, 90, 0.12);
-  z-index: 10;
+/* The site header: the logo on the left, the menu on the right. */
+.site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
 }
 
-.tab {
-  display: grid;
-  justify-items: center;
-  gap: 2px;
-  padding: var(--space-1) 0;
+.site-nav {
+  display: flex;
+  gap: var(--space-1);
+  padding: var(--space-1);
   border-radius: 16px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  box-shadow: var(--shadow-card);
+}
+
+/* Each menu item: icon and name side by side. */
+.site-nav-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 12px;
   color: var(--color-text-muted);
-  font-size: 0.8rem;
+  font-size: 0.95rem;
   font-weight: 600;
   text-decoration: none;
 }
 
-.tab:hover {
+.site-nav-link:hover {
+  color: var(--color-text);
   background: var(--color-surface-muted);
 }
 
-.tab.active {
+/* The page you are on. */
+.site-nav-link.active {
   color: var(--color-accent);
+  background: var(--color-accent-soft);
 }
 
-/* Room at the bottom of the page, so the tab bar never covers the last row. */
-.app:has(.tab-bar) {
-  padding-bottom: calc(var(--space-6) + 96px);
+/* ---------- narrow (phone-sized) windows ---------- */
+
+/* The menu becomes a floating bar at the bottom, icons above names, within thumb reach. */
+@media (max-width: 719px) {
+  .site-nav {
+    position: fixed;
+    left: 50%;
+    bottom: calc(var(--space-3) + env(safe-area-inset-bottom));
+    transform: translateX(-50%);
+    width: calc(100% - 2 * var(--space-4));
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: var(--space-2);
+    border-radius: 24px;
+    box-shadow: 0 8px 30px rgba(40, 30, 90, 0.12);
+    z-index: 10;
+  }
+
+  .site-nav-link {
+    flex-direction: column;
+    gap: 2px;
+    padding: var(--space-1) 0;
+    font-size: 0.8rem;
+  }
+
+  .site-nav-link.active {
+    background: none;
+  }
+
+  /* Room at the bottom of the page, so the bar never covers the last row. */
+  .app:has(.site-nav) {
+    padding-bottom: calc(var(--space-6) + 96px);
+  }
 }

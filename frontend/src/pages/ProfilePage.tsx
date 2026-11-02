@@ -79,43 +79,48 @@ export function ProfilePage() {
   if (!user) return null; // RequireAuth only shows this page to logged-in users
 
   return (
-    <div className="profile-page">
-      <section className="profile-who">
-        <span className="profile-avatar" aria-hidden="true">
-          {user.email.charAt(0).toUpperCase()}
-        </span>
-        <h2>{user.email}</h2>
-        <p>Member since {formatLongDate(user.createdAt.slice(0, 10))}</p>
-      </section>
+    // On wide screens: you on the left, settings on the right.
+    <div className="profile-page wide two-col">
+      <div className="col">
+        <section className="profile-who">
+          <span className="profile-avatar" aria-hidden="true">
+            {user.email.charAt(0).toUpperCase()}
+          </span>
+          <h2>{user.email}</h2>
+          <p>Member since {formatLongDate(user.createdAt.slice(0, 10))}</p>
+        </section>
 
-      {/* A list of rows, like phone settings */}
-      <ul className="card profile-rows">
-        <li className="profile-row">
-          <span>Time zone</span>
-          <span className="profile-value">{user.timeZone}</span>
-        </li>
-        <li>
-          <Link to="/habits/archived">
-            <span>Archived habits</span>
-            <span aria-hidden="true">›</span>
-          </Link>
-        </li>
-      </ul>
+        {/* A list of rows, like phone settings */}
+        <ul className="card profile-rows">
+          <li className="profile-row">
+            <span>Time zone</span>
+            <span className="profile-value">{user.timeZone}</span>
+          </li>
+          <li>
+            <Link to="/habits/archived">
+              <span>Archived habits</span>
+              <span aria-hidden="true">›</span>
+            </Link>
+          </li>
+        </ul>
+      </div>
 
-      <ClimbSetting />
+      <div className="col">
+        <ClimbSetting />
 
-      <p className="profile-note">
-        The weather on your hills uses your location. It goes straight to
-        Open-Meteo, a free weather service, and never to RESET’s server.
-      </p>
+        <p className="profile-note">
+          The weather on your hills uses your location. It goes straight to
+          Open-Meteo, a free weather service, and never to RESET’s server.
+        </p>
 
-      <button
-        className="button button-danger"
-        type="button"
-        onClick={() => void logout()}
-      >
-        Log out
-      </button>
+        <button
+          className="button button-danger"
+          type="button"
+          onClick={() => void logout()}
+        >
+          Log out
+        </button>
+      </div>
     </div>
   );
 }

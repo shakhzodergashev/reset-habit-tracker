@@ -3,6 +3,28 @@
   gap: var(--space-5);
 }
 
+.today-side,
+.today-habits {
+  display: grid;
+  gap: var(--space-5);
+  align-content: start;
+}
+
+/* Wide screens: the week and the hill on the left, the habits on the right.
+   The left side stays in view while the habits scroll. */
+@media (min-width: 960px) {
+  .today-layout {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    gap: var(--space-6);
+    align-items: start;
+  }
+
+  .today-side {
+    position: sticky;
+    top: var(--space-5);
+  }
+}
+
 /* The hill on top, the "Daily Progress" card overlapping its bottom edge. */
 .today-climb {
   padding: 0;

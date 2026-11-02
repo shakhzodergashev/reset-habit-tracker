@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes } from 'react-router';
+import { Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from './auth/auth-context';
 import { RequireAuth } from './auth/RequireAuth';
 import { TabLayout } from './components/TabLayout';
@@ -16,19 +16,26 @@ import './App.css';
 
 function App() {
   const { user } = useAuth();
+  const { pathname } = useLocation();
+  // The pages with the menu (TabLayout) show the logo in their own header.
+  const showHeader = !user || pathname === '/welcome';
 
   return (
     <main className="app">
-      <header className="app-header">
-        <h1 className="app-title">
-          <span className="app-logo" aria-hidden="true" />
-          Reset
-        </h1>
-        {/* The tagline greets people on the login and sign-up pages. */}
-        {!user && (
-          <p className="app-tagline">Build better days. One habit at a time.</p>
-        )}
-      </header>
+      {showHeader && (
+        <header className="app-header">
+          <h1 className="app-title">
+            <span className="app-logo" aria-hidden="true" />
+            Reset
+          </h1>
+          {/* The tagline greets people on the login and sign-up pages. */}
+          {!user && (
+            <p className="app-tagline">
+              Build better days. One habit at a time.
+            </p>
+          )}
+        </header>
+      )}
 
       {/* Shows the one page that matches the address in the browser. */}
       <Routes>

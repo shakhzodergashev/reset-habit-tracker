@@ -87,68 +87,77 @@ export function DashboardPage() {
   const isToday = dashboard.date === dashboard.today;
 
   return (
-    <div className="dashboard">
-      <WeekStrip
-        today={dashboard.today}
-        selected={dashboard.date}
-        onSelect={(day) => setDate(day === dashboard.today ? undefined : day)}
-      />
-
-      {/* The climb for the day shown: each habit done moves the cyclist one share up. */}
-      <section className="card today-climb">
-        <HillScene
-          // A new hill when another day is picked, so the cyclist starts from there.
-          key={dashboard.date}
-          progress={total === 0 ? 0 : done / total}
-          weather={weather}
-          gainText={() => '+1 ✓'}
-          label={`${isToday ? 'Today' : 'That day'}: ${done} of ${total} habits done`}
+    // On wide screens: the week and the hill on the left, the habits on the right.
+    <div className="dashboard wide today-layout">
+      <div className="today-side">
+        <WeekStrip
+          today={dashboard.today}
+          selected={dashboard.date}
+          onSelect={(day) => setDate(day === dashboard.today ? undefined : day)}
         />
-        <div className="daily-progress">
-          <div>
-            <h2>{isToday ? 'Daily Progress' : 'That day'}</h2>
-            <p>
-              {done} of {total} habits
-              {total > 0 && done === total && ' · finished! 🎉'}
-            </p>
-          </div>
-          <ProgressRing percent={percent} />
-        </div>
-      </section>
 
-      <div className="section-title">
-        <h2>Habits</h2>
-        <Link className="round-button" to="/habits/new" aria-label="New habit">
-          <Icon name="plus" />
-        </Link>
+        {/* The climb for the day shown: each habit done moves the cyclist one share up. */}
+        <section className="card today-climb">
+          <HillScene
+            // A new hill when another day is picked, so the cyclist starts from there.
+            key={dashboard.date}
+            progress={total === 0 ? 0 : done / total}
+            weather={weather}
+            gainText={() => '+1 ✓'}
+            label={`${isToday ? 'Today' : 'That day'}: ${done} of ${total} habits done`}
+          />
+          <div className="daily-progress">
+            <div>
+              <h2>{isToday ? 'Daily Progress' : 'That day'}</h2>
+              <p>
+                {done} of {total} habits
+                {total > 0 && done === total && ' · finished! 🎉'}
+              </p>
+            </div>
+            <ProgressRing percent={percent} />
+          </div>
+        </section>
       </div>
 
-      {actionError && (
-        <p className="form-error" role="alert">
-          {actionError}
-        </p>
-      )}
+      <div className="today-habits">
+        <div className="section-title">
+          <h2>Habits</h2>
+          <Link
+            className="round-button"
+            to="/habits/new"
+            aria-label="New habit"
+          >
+            <Icon name="plus" />
+          </Link>
+        </div>
 
-      {dashboard.habits.length === 0 ? (
-        <section className="card welcome">
-          <h2>No habits yet</h2>
-          <p>Tap + to create your first one.</p>
-        </section>
-      ) : (
-        <ul className="habit-list">
-          {/* One row per habit. key tells React which row is which. */}
-          {dashboard.habits.map((habit) => (
-            <li key={habit.id}>
-              <HabitCard
-                habit={habit}
-                done={habit.completedOnDate}
-                onToggle={() => void toggleHabit(habit)}
-                isPending={pendingHabitId === habit.id}
-              />
-            </li>
-          ))}
-        </ul>
-      )}
+        {actionError && (
+          <p className="form-error" role="alert">
+            {actionError}
+          </p>
+        )}
+
+        {dashboard.habits.length === 0 ? (
+          <section className="card welcome">
+            <h2>No habits yet</h2>
+            <p>Tap + to create your first one.</p>
+          </section>
+        ) : (
+          <ul className="habit-list">
+            {/* One row per habit. key tells React which row is which. */}
+            {dashboard.habits.map((habit) => (
+              <li key={habit.id}>
+                <HabitCard
+                  habit={habit}
+                  done={habit.completedOnDate}
+                  onToggle={() => void toggleHabit(habit)}
+                  isPending={pendingHabitId === habit.id}
+                />
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
