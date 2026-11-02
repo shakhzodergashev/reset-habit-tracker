@@ -2,8 +2,13 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router';
 import { ApiError } from '../api/client';
 import type { Habit } from '../api/dashboard';
-import { archiveHabit, getHabit, updateHabit } from '../api/habits';
-import { ArchiveHabitCard } from '../components/ArchiveHabitCard';
+import {
+  archiveHabit,
+  deleteHabit,
+  getHabit,
+  updateHabit,
+} from '../api/habits';
+import { HabitActionCard } from '../components/HabitActionCard';
 import { HabitForm } from '../components/HabitForm';
 
 /** /habits/:id/edit: change a habit's name, description or emoji. */
@@ -70,14 +75,45 @@ export function EditHabitPage() {
       />
 
       {!habit.isArchived && (
-        <ArchiveHabitCard
-          habitName={habit.name}
-          onArchive={async () => {
+        <HabitActionCard
+          title="Archive habit"
+          explanation="It disappears from your dashboard, but its history is kept. You can restore it any time from “Archived habits”."
+          question={
+            <>
+              Archive <strong>{habit.name}</strong>?
+            </>
+          }
+          startLabel="Archive habit…"
+          confirmLabel="Archive"
+          busyLabel="Archiving…"
+          failMessage="Could not archive the habit. Please try again."
+          onConfirm={async () => {
             await archiveHabit(habit.id);
             navigate('/habits');
           }}
         />
       )}
+
+      {/* Last, so it's never clicked by accident. */}
+      <HabitActionCard
+        isDanger
+        title="Delete habit"
+        explanation="Deletes the habit and all its ticks, for good. Your climb and insights will no longer count it. To keep its history, archive it instead."
+        question={
+          <>
+            Delete <strong>{habit.name}</strong> forever? This can’t be undone.
+          </>
+        }
+        startLabel="Delete habit…"
+        confirmLabel="Delete forever"
+        busyLabel="Deleting…"
+        failMessage="Could not delete the habit. Please try again."
+        onConfirm={async () => {
+          await deleteHabit(habit.id);
+          // The habit's own page is gone, so go to the list it came from.
+          navigate(habit.isArchived ? '/habits/archived' : '/habits');
+        }}
+      />
     </>
   );
 }

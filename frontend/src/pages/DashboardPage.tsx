@@ -27,6 +27,7 @@ export function DashboardPage() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingHabitId, setPendingHabitId] = useState<string | null>(null);
+  const [isCompletingAll, setIsCompletingAll] = useState(false);
 
   // Load the day: when the page opens, and again when another day is picked.
   useEffect(() => {
@@ -67,6 +68,31 @@ export function DashboardPage() {
       );
     } finally {
       setPendingHabitId(null);
+    }
+  }
+
+  /** "Done all": tick every habit not done yet for the day shown, then reload. */
+  async function completeAll() {
+    if (!dashboard) return;
+    setActionError(null);
+    setIsCompletingAll(true);
+    const notDone = dashboard.habits.filter((habit) => !habit.completedOnDate);
+
+    try {
+      // All at once; ticking a habit twice is harmless, so a retry is safe.
+      await Promise.all(
+        notDone.map((habit) => markDone(habit.id, dashboard.date)),
+      );
+    } catch (err) {
+      setActionError(
+        errorMessage(err, 'Could not tick them all. Please try again.'),
+      );
+    }
+    // Reload either way, so the page shows exactly which ones were saved.
+    try {
+      setDashboard(await getDashboard(dashboard.date));
+    } finally {
+      setIsCompletingAll(false);
     }
   }
 
@@ -151,11 +177,23 @@ export function DashboardPage() {
                   habit={habit}
                   done={habit.completedOnDate}
                   onToggle={() => void toggleHabit(habit)}
-                  isPending={pendingHabitId === habit.id}
+                  isPending={isCompletingAll || pendingHabitId === habit.id}
                 />
               </li>
             ))}
           </ul>
+        )}
+
+        {/* Only while something is left to tick. */}
+        {total > 0 && done < total && (
+          <button
+            className="button button-secondary done-all"
+            type="button"
+            onClick={() => void completeAll()}
+            disabled={isCompletingAll}
+          >
+            {isCompletingAll ? 'Ticking…' : '✓ Done all'}
+          </button>
         )}
       </div>
     </div>

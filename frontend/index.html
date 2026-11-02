@@ -4,8 +4,21 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="description" content="RESET: build better days, one habit at a time." />
+    <meta
+      name="description"
+      content="RESET: build better days, one habit at a time."
+    />
     <title>RESET</title>
+    <script>
+      // Apply a saved Light/Dark choice before the page draws, so it never flashes
+      // the wrong colours. (src/theme.ts changes it later, from the Profile page.)
+      try {
+        const theme = localStorage.getItem('reset.theme');
+        if (theme === 'light' || theme === 'dark') {
+          document.documentElement.dataset.theme = theme;
+        }
+      } catch {}
+    </script>
   </head>
   <body>
     <div id="root"></div>

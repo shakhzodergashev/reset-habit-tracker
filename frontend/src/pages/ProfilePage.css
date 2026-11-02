@@ -65,7 +65,7 @@
   overflow-wrap: anywhere;
 }
 
-.profile-climb {
+.profile-setting {
   display: grid;
   gap: var(--space-3);
 }

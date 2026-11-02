@@ -42,9 +42,13 @@
   background: var(--color-page);
 }
 
-/* Dark mode: only the colours change. Same names, so every component follows. */
+/*
+  Dark mode: only the colours change. Same names, so every component follows.
+  It's used when the computer is in dark mode (unless Light was picked on the
+  Profile page), or when Dark was picked. The two lists below must stay the same.
+*/
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme='light']) {
     --color-page: #12101c;
     --color-bg: #1c1a2a;
     --color-surface-muted: #252238;
@@ -61,6 +65,24 @@
     --shadow-card: none;
     color-scheme: dark; /* dark scrollbars and form controls too */
   }
+}
+
+:root[data-theme='dark'] {
+  --color-page: #12101c;
+  --color-bg: #1c1a2a;
+  --color-surface-muted: #252238;
+  --color-border: #2f2b46;
+  --color-text: #f3f1fb;
+  --color-text-muted: #a7a2c0;
+  --color-accent: #8b6cff;
+  --color-accent-hover: #a088ff;
+  --color-accent-soft: #2b2450;
+  --color-on-accent: #ffffff;
+  --color-danger: #f38b7f;
+  --color-danger-soft: #3a1d1a;
+  --color-on-danger: #0d1218;
+  --shadow-card: none;
+  color-scheme: dark;
 }
 
 *,
@@ -179,7 +201,8 @@ textarea {
 }
 
 .field input,
-.field textarea {
+.field textarea,
+.field select {
   width: 100%;
   padding: var(--space-3);
   border: 1px solid var(--color-border);
@@ -188,7 +211,8 @@ textarea {
 }
 
 .field input:focus,
-.field textarea:focus {
+.field textarea:focus,
+.field select:focus {
   border-color: var(--color-accent);
   outline: none;
   box-shadow: 0 0 0 3px var(--color-accent-soft);

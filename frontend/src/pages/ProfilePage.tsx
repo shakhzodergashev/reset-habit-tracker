@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
+import { browserTimeZone } from '../api/auth';
 import { ApiError } from '../api/client';
 import {
   changeClimbLength,
@@ -12,7 +13,11 @@ import {
   ChangePasswordCard,
   DeleteAccountCard,
 } from '../components/AccountCards';
+import { ClimberPicker } from '../components/ClimberPicker';
 import { ClimbPicker } from '../components/ClimbPicker';
+import { Segmented } from '../components/Segmented';
+import type { Climber } from '../journey/kid';
+import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../theme';
 import { formatLongDate } from '../utils/dates';
 import './ProfilePage.css';
 
@@ -57,7 +62,7 @@ function ClimbSetting() {
   }
 
   return (
-    <section className="card profile-climb">
+    <section className="card profile-setting">
       <h3>Climb length</h3>
       {goalDays === null ? (
         <p className="profile-note">{message ?? 'Loading…'}</p>
@@ -72,6 +77,119 @@ function ClimbSetting() {
         {goalDays !== null && message
           ? message
           : 'Days you have already climbed still count.'}
+      </p>
+    </section>
+  );
+}
+
+/**
+ * Shown only when this computer's time zone differs from RESET's (after travel,
+ * say), with a button to switch. Your day starts and ends in RESET's time zone.
+ */
+function TimeZoneNotice() {
+  const { user, updateMe } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const here = browserTimeZone();
+
+  if (!user || user.timeZone === here) return null;
+
+  async function handleSwitch() {
+    setError(null);
+    setIsSaving(true);
+    try {
+      await updateMe({ timeZone: here }); // the page redraws and this notice goes away
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not change it.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="card profile-setting">
+      <p className="profile-note">
+        This computer is in <strong>{here}</strong>, but RESET uses{' '}
+        <strong>{user.timeZone}</strong>. Switch if you’ve moved or are
+        travelling, so your days start at the right midnight.
+      </p>
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+      <button
+        className="button button-secondary"
+        type="button"
+        onClick={() => void handleSwitch()}
+        disabled={isSaving}
+      >
+        {isSaving ? 'Switching…' : `Switch to ${here}`}
+      </button>
+    </section>
+  );
+}
+
+/** "Climber": the boy or the girl on the hills. Saved on the account. */
+function ClimberSetting() {
+  const { user, updateMe } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  if (!user) return null;
+
+  async function handleChange(climber: Climber) {
+    setError(null);
+    setIsSaving(true);
+    try {
+      await updateMe({ climber }); // every hill redraws with the new climber
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not save.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <section className="card profile-setting">
+      <h3>Climber</h3>
+      <ClimberPicker
+        value={user.climber}
+        onChange={(climber) => void handleChange(climber)}
+        disabled={isSaving}
+      />
+      {error && (
+        <p className="form-error" role="alert">
+          {error}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** "Appearance": Automatic follows the computer; Light or Dark forces one look. */
+function ThemeSetting() {
+  const [choice, setChoice] = useState<ThemeChoice>(getThemeChoice);
+
+  return (
+    <section className="card profile-setting">
+      <h3>Appearance</h3>
+      <Segmented
+        label="Appearance"
+        options={[
+          { value: 'auto', label: 'Automatic' },
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+        value={choice}
+        onChange={(next) => {
+          setChoice(next);
+          setThemeChoice(next);
+        }}
+      />
+      <p className="profile-note">
+        {choice === 'auto'
+          ? 'Follows your computer’s light or dark setting.'
+          : 'Saved on this browser.'}
       </p>
     </section>
   );
@@ -107,10 +225,13 @@ export function ProfilePage() {
             </Link>
           </li>
         </ul>
+        <TimeZoneNotice />
       </div>
 
       <div className="col">
         <ClimbSetting />
+        <ClimberSetting />
+        <ThemeSetting />
         <ChangePasswordCard />
 
         <p className="profile-note">

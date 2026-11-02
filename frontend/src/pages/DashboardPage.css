@@ -85,6 +85,10 @@
   gap: var(--space-3);
 }
 
+.done-all {
+  width: 100%;
+}
+
 .dashboard-archived-link {
   justify-self: center;
   color: var(--color-text-muted);

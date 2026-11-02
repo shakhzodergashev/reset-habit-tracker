@@ -1,13 +1,22 @@
-.archive-card {
+.habit-action-card {
   display: grid;
   gap: var(--space-3);
 }
 
-.archive-card > p {
+.habit-action-card > p {
   color: var(--color-text-muted);
 }
 
-.archive-confirm {
+/* Delete has a red edge, so it's clearly different from Archive. */
+.habit-action-card.is-danger {
+  border-color: var(--color-danger);
+}
+
+.habit-action-card.is-danger h3 {
+  color: var(--color-danger);
+}
+
+.habit-action-confirm {
   display: grid;
   gap: var(--space-3);
   padding: var(--space-3);

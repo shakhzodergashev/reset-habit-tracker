@@ -1,12 +1,24 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router';
+import { browserTimeZone } from '../api/auth';
 import { ApiError } from '../api/client';
 import { DEFAULT_CLIMB, startClimb } from '../api/stats';
+import { useAuth } from '../auth/auth-context';
+import { ClimberPicker } from '../components/ClimberPicker';
 import { ClimbPicker } from '../components/ClimbPicker';
+import { TimeZonePicker } from '../components/TimeZonePicker';
+import type { Climber } from '../journey/kid';
 
-/** /welcome: shown once, right after creating an account. Pick your first climb. */
+/**
+ * /welcome: shown once, right after creating an account. Pick your climber,
+ * check your time zone, and choose your first climb.
+ */
 export function WelcomePage() {
   const navigate = useNavigate();
+  const { user, updateMe } = useAuth();
+  const [climber, setClimber] = useState<Climber>(user?.climber ?? 'boy');
+  // Filled in from this computer when the account was made; checked here.
+  const [timeZone, setTimeZone] = useState(user?.timeZone ?? browserTimeZone());
   const [goalDays, setGoalDays] = useState(DEFAULT_CLIMB);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -15,11 +27,13 @@ export function WelcomePage() {
     setError(null);
     setIsSaving(true);
     try {
+      // The time zone first: the climb starts on "today" in that zone.
+      await updateMe({ climber, timeZone });
       await startClimb(goalDays);
       navigate('/', { replace: true });
     } catch (err) {
       setError(
-        err instanceof ApiError ? err.message : 'Could not save your climb.',
+        err instanceof ApiError ? err.message : 'Could not save your choices.',
       );
       setIsSaving(false);
     }
@@ -27,12 +41,28 @@ export function WelcomePage() {
 
   return (
     <section className="card welcome">
-      <h2>Choose your first climb 🚴</h2>
+      <h2>Welcome to RESET 🚴</h2>
       <p>
-        Every day you complete your habits, your cyclist rides up the hill. How
-        long should your first climb be? You can change it later in Profile.
+        Every day you complete your habits, your climber rides up the hill. A
+        few choices first; you can change them later in Profile.
       </p>
 
+      <h3>Who climbs the hill?</h3>
+      <ClimberPicker
+        value={climber}
+        onChange={setClimber}
+        disabled={isSaving}
+      />
+
+      <h3>Where do you live?</h3>
+      <p>Your day starts and ends at midnight in this time zone.</p>
+      <TimeZonePicker
+        value={timeZone}
+        onChange={setTimeZone}
+        disabled={isSaving}
+      />
+
+      <h3>How long is your first climb?</h3>
       <ClimbPicker
         value={goalDays}
         onChange={setGoalDays}

@@ -6,18 +6,12 @@ import {
   type Weather,
   type WeatherKind,
 } from '../journey/weather';
+import { useAuth } from '../auth/auth-context';
 import {
   BIKE,
-  CHEER,
-  HANDLEBAR_ARM,
-  LEG_FRAMES,
+  KIDS,
   PAGE_TURN,
-  READ,
-  REST,
-  RIDER_BODY,
-  RIDER_HEAD,
   SHOULDER,
-  WAVE_ARM,
   ZZZ,
   type Shape,
 } from '../journey/kid';
@@ -211,6 +205,8 @@ export function HillScene({
   rideInOnOpen = false,
 }: HillSceneProps) {
   const colors = sceneColors(weather);
+  const { user } = useAuth();
+  const kid = KIDS[user?.climber ?? 'boy']; // the climber picked on the Profile page
 
   // Riding in: show the bottom first, then (a moment later) the real place,
   // so the cyclist rides all the way up like after a tick.
@@ -355,29 +351,29 @@ export function HillScene({
             {/* The kid on the bike */}
             <g className="hill-rider-on">
               {/* The legs: 4 drawings, shown one after another while riding (a flip-book). */}
-              {LEG_FRAMES.map((frame, i) => (
+              {kid.legFrames.map((frame, i) => (
                 <g key={i} className={`hill-legs hill-legs-${i}`}>
                   <Shapes shapes={frame} />
                 </g>
               ))}
-              <Shapes shapes={RIDER_BODY} />
+              <Shapes shapes={kid.riderBody} />
               {/* The arm on the handlebar... */}
               <g className="hill-arm">
-                <Shapes shapes={HANDLEBAR_ARM} />
+                <Shapes shapes={kid.handlebarArm} />
               </g>
               {/* ...or, halfway up, raised and waving (it turns at the shoulder). */}
               <g transform={`translate(${SHOULDER.x} ${SHOULDER.y})`}>
                 <g className="hill-wave-arm">
-                  <Shapes shapes={WAVE_ARM} />
+                  <Shapes shapes={kid.waveArm} />
                 </g>
               </g>
-              <Shapes shapes={RIDER_HEAD} />
+              <Shapes shapes={kid.riderHead} />
             </g>
 
             {/* At the finish: off the bike, arms up, hopping, with confetti */}
             <g className="hill-rider-cheer">
               <g className="hill-cheer-jump">
-                <Shapes shapes={CHEER} />
+                <Shapes shapes={kid.cheer} />
               </g>
               {CONFETTI.map(({ x, y, color }) => (
                 <rect
@@ -397,14 +393,14 @@ export function HillScene({
             <g className="hill-rider-rest">
               {weather.isDay ? (
                 <>
-                  <Shapes shapes={READ} />
+                  <Shapes shapes={kid.read} />
                   <g className="hill-page">
                     <Shapes shapes={PAGE_TURN} />
                   </g>
                 </>
               ) : (
                 <>
-                  <Shapes shapes={REST} />
+                  <Shapes shapes={kid.rest} />
                   <text className="hill-zzz" fill={colors.ink}>
                     {ZZZ.map((z) => (
                       <tspan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
