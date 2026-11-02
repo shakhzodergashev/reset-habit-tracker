@@ -19,10 +19,10 @@ export function deviceTimeZone(): string {
 }
 
 export async function register(email: string, password: string): Promise<User> {
-  const { accessToken, user } = await apiRequest<AuthResponse>(
-    '/auth/register',
-    { method: 'POST', body: { email, password, timeZone: deviceTimeZone() } },
-  );
+  const { accessToken, user } = await apiRequest<AuthResponse>('/auth/register', {
+    method: 'POST',
+    body: { email, password, timeZone: deviceTimeZone() },
+  });
   await saveToken(accessToken);
   return user;
 }
@@ -47,4 +47,18 @@ export async function logout(): Promise<void> {
 
 export function getMe(): Promise<User> {
   return apiRequest<User>('/me');
+}
+
+/** Changes the password. Other devices are logged out; this one stays logged in. */
+export function changePassword(currentPassword: string, newPassword: string): Promise<void> {
+  return apiRequest<void>('/me/password', {
+    method: 'PATCH',
+    body: { currentPassword, newPassword },
+  });
+}
+
+/** Deletes the account and everything in it, for good. */
+export async function deleteAccount(password: string): Promise<void> {
+  await apiRequest<void>('/me', { method: 'DELETE', body: { password } });
+  await saveToken(null); // the login is gone with the account
 }

@@ -7,6 +7,7 @@ import { changeClimbLength, DEFAULT_CLIMB, getStats, startClimb } from '@/api/ha
 import { useAuth } from '@/auth/auth-context';
 import { Button } from '@/components/Button';
 import { ClimbPicker } from '@/components/ClimbPicker';
+import { ChangePasswordCard, DeleteAccountCard } from '@/components/AccountCards';
 import { Card, MutedText, TabScreen } from '@/components/ui';
 import { radius, space, useTheme } from '@/theme';
 import { formatLongDate } from '@/utils/dates';
@@ -117,13 +118,17 @@ export default function ProfileScreen() {
       </View>
 
       <ClimbSetting />
+      <ChangePasswordCard />
 
       <MutedText>
         The weather on your hills uses your location. It goes straight to Open-Meteo, a free weather
         service, and never to RESET’s server.
       </MutedText>
 
-      <Button title="Log out" variant="danger" onPress={() => void logout()} />
+      <Button title="Log out" variant="secondary" onPress={() => void logout()} />
+
+      {/* Last, so it's never tapped by accident. */}
+      <DeleteAccountCard />
     </TabScreen>
   );
 }

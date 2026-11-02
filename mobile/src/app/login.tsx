@@ -71,6 +71,9 @@ export default function LoginScreen() {
         {!isRegister && auth.sessionEnded && (
           <NoticeBox message="Your session has ended. Please log in again." />
         )}
+        {auth.accountDeleted && (
+          <NoticeBox message="Your account and all its data have been deleted." />
+        )}
 
         <View style={{ gap: space[1] }}>
           <FieldLabel>Email</FieldLabel>

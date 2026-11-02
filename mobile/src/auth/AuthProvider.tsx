@@ -9,6 +9,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // On a phone the token is read from the Keychain asynchronously, so we always start "checking".
   const [isChecking, setIsChecking] = useState(true);
   const [sessionEnded, setSessionEnded] = useState(false);
+  const [accountDeleted, setAccountDeleted] = useState(false);
 
   // When the app starts: read the saved token, then ask the backend who it belongs to.
   useEffect(() => {
@@ -35,13 +36,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     isChecking,
     sessionEnded,
+    accountDeleted,
     login: async (email: string, password: string) => {
       setUser(await authApi.login(email, password));
       setSessionEnded(false);
+      setAccountDeleted(false);
     },
     register: async (email: string, password: string) => {
       setUser(await authApi.register(email, password));
       setSessionEnded(false);
+      setAccountDeleted(false);
     },
     logout: async () => {
       try {
@@ -51,6 +55,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
       setUser(null);
       setSessionEnded(false);
+    },
+    deleteAccount: async (password: string) => {
+      await authApi.deleteAccount(password); // throws (and keeps you logged in) if the password is wrong
+      setUser(null);
+      setAccountDeleted(true);
     },
   };
 

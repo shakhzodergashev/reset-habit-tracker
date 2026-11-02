@@ -6,9 +6,11 @@ export interface AuthContextValue {
   user: User | null; // null = nobody is logged in
   isChecking: boolean; // true while the saved token is being checked at start-up
   sessionEnded: boolean; // true if the backend ended the login while the app was open
+  accountDeleted: boolean; // true right after the user deleted their account
   login: (email: string, password: string) => Promise<void>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);
