@@ -156,16 +156,7 @@ export function DeleteAccountCard() {
   }
 
   return (
-    <View
-      style={{
-        borderRadius: 18,
-        borderWidth: 1,
-        borderColor: c.danger,
-        backgroundColor: c.surface,
-        padding: space[4],
-        gap: space[3],
-      }}
-    >
+    <Card danger>
       <Text style={{ fontSize: 18, fontWeight: '700', color: c.danger }}>Delete account</Text>
       <MutedText>
         This deletes your account and everything in it: habits, ticks, climbs and streaks. It can’t
@@ -208,6 +199,6 @@ export function DeleteAccountCard() {
           />
         </View>
       )}
-    </View>
+    </Card>
   );
 }

@@ -10,6 +10,7 @@ import {
   type Dashboard,
   type DashboardHabit,
 } from '@/api/habits';
+import { Button } from '@/components/Button';
 import { HabitCard } from '@/components/HabitCard';
 import { HillScene } from '@/components/HillScene';
 import { ProgressRing } from '@/components/ProgressRing';
@@ -33,6 +34,7 @@ export default function TodayScreen() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [pendingHabitId, setPendingHabitId] = useState<string | null>(null);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isCompletingAll, setIsCompletingAll] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -69,6 +71,26 @@ export default function TodayScreen() {
       setActionError(errorMessage(err, 'Could not save that. Please try again.'));
     } finally {
       setPendingHabitId(null);
+    }
+  }
+
+  /** "Done all": tick every habit not done yet for the day shown, then reload. */
+  async function completeAll() {
+    if (!dashboard) return;
+    setActionError(null);
+    setIsCompletingAll(true);
+    const notDone = dashboard.habits.filter((habit) => !habit.completedOnDate);
+    try {
+      // All at once; ticking a habit twice is harmless, so a retry is safe.
+      await Promise.all(notDone.map((habit) => markDone(habit.id, dashboard.date)));
+    } catch (err) {
+      setActionError(errorMessage(err, 'Could not tick them all. Please try again.'));
+    }
+    // Reload either way, so the screen shows exactly which ones were saved.
+    try {
+      setDashboard(await getDashboard(dashboard.date));
+    } finally {
+      setIsCompletingAll(false);
     }
   }
 
@@ -165,12 +187,22 @@ export default function TodayScreen() {
                   key={habit.id}
                   habit={habit}
                   done={habit.completedOnDate}
-                  isPending={pendingHabitId === habit.id}
+                  isPending={isCompletingAll || pendingHabitId === habit.id}
                   onToggle={() => void toggleHabit(habit)}
                   onOpen={() => router.push({ pathname: '/habits/[id]', params: { id: habit.id } })}
                 />
               ))}
             </View>
+          )}
+
+          {/* Only while something is left to tick. */}
+          {total > 0 && done < total && (
+            <Button
+              title={isCompletingAll ? 'Ticking…' : '✓ Done all'}
+              variant="secondary"
+              onPress={() => void completeAll()}
+              disabled={isCompletingAll}
+            />
           )}
         </>
       )}

@@ -2,7 +2,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
 import { Alert, Text } from 'react-native';
 import { ApiError } from '@/api/client';
-import { archiveHabit, getHabit, restoreHabit, updateHabit, type Habit } from '@/api/habits';
+import {
+  archiveHabit,
+  deleteHabit,
+  getHabit,
+  restoreHabit,
+  updateHabit,
+  type Habit,
+} from '@/api/habits';
 import { Button } from '@/components/Button';
 import { HabitForm } from '@/components/HabitForm';
 import { RequireUser } from '@/components/RequireUser';
@@ -78,6 +85,26 @@ function EditHabitContent() {
     );
   }
 
+  function confirmDelete(current: Habit) {
+    Alert.alert(
+      `Delete “${current.name}” forever?`,
+      'All its ticks are deleted too, and your climb and insights stop counting it. This can’t be undone.',
+      [
+        { text: 'Keep habit', style: 'cancel' },
+        {
+          text: 'Delete forever',
+          style: 'destructive',
+          onPress: () => {
+            deleteHabit(current.id)
+              // The habit's own page is gone too, so go back to the list it came from.
+              .then(() => router.dismissTo(current.isArchived ? '/archived' : '/habits'))
+              .catch(() => Alert.alert('Could not delete the habit. Please try again.'));
+          },
+        },
+      ],
+    );
+  }
+
   return (
     <Screen>
       <HabitForm
@@ -119,6 +146,15 @@ function EditHabitContent() {
             />
           </>
         )}
+      </Card>
+
+      {/* Last, so it's never tapped by accident. */}
+      <Card danger>
+        <Text style={{ fontSize: 17, fontWeight: '700', color: c.danger }}>Delete habit</Text>
+        <MutedText>
+          Deletes the habit and all its ticks, for good. To keep its history, archive it instead.
+        </MutedText>
+        <Button title="Delete habit…" variant="danger" onPress={() => confirmDelete(habit)} />
       </Card>
     </Screen>
   );

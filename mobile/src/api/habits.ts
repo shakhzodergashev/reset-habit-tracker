@@ -122,6 +122,11 @@ export function archiveHabit(id: string): Promise<Habit> {
   return apiRequest<Habit>(`/habits/${id}/archive`, { method: 'POST' });
 }
 
+/** Deletes the habit and all its ticks, for good. */
+export function deleteHabit(id: string): Promise<void> {
+  return apiRequest<void>(`/habits/${id}`, { method: 'DELETE' });
+}
+
 export function restoreHabit(id: string): Promise<Habit> {
   return apiRequest<Habit>(`/habits/${id}/restore`, { method: 'POST' });
 }

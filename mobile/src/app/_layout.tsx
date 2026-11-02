@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
+import { useEffect } from 'react';
 import { AuthProvider } from '@/auth/AuthProvider';
-import { useTheme } from '@/theme';
+import { loadThemeChoice, useTheme } from '@/theme';
 
 /**
  * The frame around every screen. Expo Router turns each file in src/app into a screen;
@@ -9,6 +10,11 @@ import { useTheme } from '@/theme';
  */
 export default function RootLayout() {
   const c = useTheme();
+
+  // Put back the Light/Dark choice from the Profile tab (once, at start-up).
+  useEffect(() => {
+    loadThemeChoice().catch(() => {}); // if it can't be read, follow the iPhone
+  }, []);
 
   return (
     <AuthProvider>

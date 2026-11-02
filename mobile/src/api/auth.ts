@@ -1,10 +1,12 @@
 // Account calls, the same as on the website. Shapes match what the backend sends.
+import type { Climber } from '../journey/kid';
 import { apiRequest, saveToken } from './client';
 
 export interface User {
   id: string;
   email: string;
   timeZone: string;
+  climber: Climber; // who climbs the hill
   createdAt: string;
 }
 
@@ -47,6 +49,21 @@ export async function logout(): Promise<void> {
 
 export function getMe(): Promise<User> {
   return apiRequest<User>('/me');
+}
+
+/** The settings that can be changed. Send only the ones that change. */
+export interface UserSettings {
+  timeZone?: string; // decides when your day starts and ends
+  climber?: Climber;
+}
+
+export function updateMe(changes: UserSettings): Promise<User> {
+  return apiRequest<User>('/me', { method: 'PATCH', body: changes });
+}
+
+/** Every time zone name the server accepts, sorted (for the picker). */
+export function listTimeZones(): Promise<string[]> {
+  return apiRequest<string[]>('/time-zones');
 }
 
 /** Changes the password. Other devices are logged out; this one stays logged in. */

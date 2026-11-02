@@ -61,6 +61,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(null);
       setAccountDeleted(true);
     },
+    updateMe: async (changes: authApi.UserSettings) => {
+      setUser(await authApi.updateMe(changes)); // every screen sees the change
+    },
   };
 
   return <AuthContext value={value}>{children}</AuthContext>;

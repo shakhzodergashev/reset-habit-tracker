@@ -1,5 +1,37 @@
-// RESET's look on the phone, in light and dark. The iPhone's own setting decides which one.
-import { useColorScheme } from 'react-native';
+// RESET's look on the phone, in light and dark. The iPhone's own setting decides which one,
+// unless Light or Dark was picked on the Profile tab.
+import * as SecureStore from 'expo-secure-store';
+import { Appearance, useColorScheme } from 'react-native';
+
+export type ThemeChoice = 'auto' | 'light' | 'dark';
+
+const THEME_KEY = 'reset.theme';
+let themeChoice: ThemeChoice = 'auto';
+
+/** The choice made on the Profile tab ("auto" = follow the iPhone). */
+export function getThemeChoice(): ThemeChoice {
+  return themeChoice;
+}
+
+/**
+ * Switch the whole app (tab bar, status bar and popups too) and remember it.
+ * Appearance.setColorScheme('auto') hands control back to the iPhone's setting.
+ */
+export async function setThemeChoice(choice: ThemeChoice): Promise<void> {
+  themeChoice = choice;
+  Appearance.setColorScheme(choice);
+  if (choice === 'auto') await SecureStore.deleteItemAsync(THEME_KEY);
+  else await SecureStore.setItemAsync(THEME_KEY, choice);
+}
+
+/** At start-up: put back the choice saved last time. */
+export async function loadThemeChoice(): Promise<void> {
+  const saved = await SecureStore.getItemAsync(THEME_KEY);
+  if (saved === 'light' || saved === 'dark') {
+    themeChoice = saved;
+    Appearance.setColorScheme(saved);
+  }
+}
 
 export interface ThemeColors {
   scheme: 'light' | 'dark';

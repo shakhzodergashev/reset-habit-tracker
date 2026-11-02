@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { User } from '../api/auth';
+import type { User, UserSettings } from '../api/auth';
 
 /** What every screen can read with useAuth(), the same idea as on the website. */
 export interface AuthContextValue {
@@ -11,6 +11,7 @@ export interface AuthContextValue {
   register: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
   deleteAccount: (password: string) => Promise<void>;
+  updateMe: (changes: UserSettings) => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null);

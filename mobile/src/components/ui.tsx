@@ -116,14 +116,15 @@ export function RoundButton({
 }
 
 /** A card with a border, like `.card` on the website. */
-export function Card({ children }: { children: ReactNode }) {
+/** A card. danger = a red edge, for actions that can't be undone (delete). */
+export function Card({ children, danger = false }: { children: ReactNode; danger?: boolean }) {
   const c = useTheme();
   return (
     <View
       style={{
         backgroundColor: c.surface,
         borderWidth: 1,
-        borderColor: c.border,
+        borderColor: danger ? c.danger : c.border,
         borderRadius: radius,
         padding: space[4],
         gap: space[3],

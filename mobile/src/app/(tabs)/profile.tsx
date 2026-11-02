@@ -2,14 +2,18 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState, type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
+import { deviceTimeZone } from '@/api/auth';
 import { ApiError } from '@/api/client';
 import { changeClimbLength, DEFAULT_CLIMB, getStats, startClimb } from '@/api/habits';
 import { useAuth } from '@/auth/auth-context';
 import { Button } from '@/components/Button';
+import { ClimberPicker } from '@/components/ClimberPicker';
 import { ClimbPicker } from '@/components/ClimbPicker';
 import { ChangePasswordCard, DeleteAccountCard } from '@/components/AccountCards';
-import { Card, MutedText, TabScreen } from '@/components/ui';
-import { radius, space, useTheme } from '@/theme';
+import { Segmented } from '@/components/Segmented';
+import { Card, ErrorBox, MutedText, TabScreen } from '@/components/ui';
+import type { Climber } from '@/journey/kid';
+import { getThemeChoice, radius, setThemeChoice, space, useTheme, type ThemeChoice } from '@/theme';
 import { formatLongDate } from '@/utils/dates';
 
 /** "Climb length": change how long the current climb is (or pick the first one). */
@@ -69,6 +73,110 @@ function ClimbSetting() {
   );
 }
 
+/**
+ * Shown only when the iPhone's time zone differs from RESET's (after travel, say),
+ * with a button to switch. Your day starts and ends in RESET's time zone.
+ */
+function TimeZoneNotice() {
+  const { user, updateMe } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const here = deviceTimeZone();
+
+  if (!user || user.timeZone === here) return null;
+
+  async function handleSwitch() {
+    setError(null);
+    setIsSaving(true);
+    try {
+      await updateMe({ timeZone: here }); // the screen redraws and this notice goes away
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not change it.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <Card>
+      <MutedText>
+        This iPhone is in {here}, but RESET uses {user.timeZone}. Switch if you’ve moved or are
+        travelling, so your days start at the right midnight.
+      </MutedText>
+      {error && <ErrorBox message={error} />}
+      <Button
+        title={isSaving ? 'Switching…' : `Switch to ${here}`}
+        variant="secondary"
+        onPress={() => void handleSwitch()}
+        disabled={isSaving}
+      />
+    </Card>
+  );
+}
+
+/** "Climber": the boy or the girl on the hills. Saved on the account. */
+function ClimberSetting() {
+  const c = useTheme();
+  const { user, updateMe } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  if (!user) return null;
+
+  async function handleChange(climber: Climber) {
+    setError(null);
+    setIsSaving(true);
+    try {
+      await updateMe({ climber }); // every hill redraws with the new climber
+    } catch (err) {
+      setError(err instanceof ApiError ? err.message : 'Could not save.');
+    } finally {
+      setIsSaving(false);
+    }
+  }
+
+  return (
+    <Card>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: c.text }}>Climber</Text>
+      <ClimberPicker
+        value={user.climber}
+        onChange={(climber) => void handleChange(climber)}
+        disabled={isSaving}
+      />
+      {error && <ErrorBox message={error} />}
+    </Card>
+  );
+}
+
+/** "Appearance": Automatic follows the iPhone; Light or Dark forces one look. */
+function ThemeSetting() {
+  const c = useTheme();
+  const [choice, setChoice] = useState<ThemeChoice>(getThemeChoice);
+
+  return (
+    <Card>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: c.text }}>Appearance</Text>
+      <Segmented
+        label="Appearance"
+        options={[
+          { value: 'auto', label: 'Automatic' },
+          { value: 'light', label: 'Light' },
+          { value: 'dark', label: 'Dark' },
+        ]}
+        value={choice}
+        onChange={(next) => {
+          setChoice(next);
+          setThemeChoice(next).catch(() => {}); // the app has switched even if saving fails
+        }}
+      />
+      <MutedText>
+        {choice === 'auto'
+          ? 'Follows your iPhone’s light or dark setting.'
+          : 'Saved on this iPhone.'}
+      </MutedText>
+    </Card>
+  );
+}
+
 /** The Profile tab: who is logged in, archived habits, and log out. */
 export default function ProfileScreen() {
   const router = useRouter();
@@ -117,7 +225,10 @@ export default function ProfileScreen() {
         />
       </View>
 
+      <TimeZoneNotice />
       <ClimbSetting />
+      <ClimberSetting />
+      <ThemeSetting />
       <ChangePasswordCard />
 
       <MutedText>

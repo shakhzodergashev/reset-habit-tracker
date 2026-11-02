@@ -12,22 +12,9 @@ import Svg, {
   Text as SvgText,
   TSpan,
 } from 'react-native-svg';
+import { useAuth } from '../auth/auth-context';
 import { FLAG, HEIGHT, KID_SCALE, riderAt, ROAD, WIDTH } from '../journey/hill';
-import {
-  BIKE,
-  CHEER,
-  HANDLEBAR_ARM,
-  LEG_FRAMES,
-  PAGE_TURN,
-  READ,
-  REST,
-  RIDER_BODY,
-  RIDER_HEAD,
-  SHOULDER,
-  WAVE_ARM,
-  ZZZ,
-  type Shape,
-} from '../journey/kid';
+import { BIKE, KIDS, PAGE_TURN, SHOULDER, ZZZ, type Shape } from '../journey/kid';
 import { sceneColors, weatherLabel, type Weather, type WeatherKind } from '../journey/weather';
 
 // The cyclist lives in its own 64 x 60 box. The point where the wheels touch the road
@@ -227,6 +214,8 @@ export function HillScene({
   rideInOnOpen = false,
 }: HillSceneProps) {
   const colors = sceneColors(weather);
+  const { user } = useAuth();
+  const kid = KIDS[user?.climber ?? 'boy']; // the climber picked on the Profile tab
   const [width, setWidth] = useState(0); // the drawing's real width, known after layout
   const scale = width / WIDTH;
   const k = scale * KID_SCALE; // the kid is drawn a little bigger than the scene
@@ -380,7 +369,7 @@ export function HillScene({
     inputRange: [0, 0.01, 0.99, 1],
     outputRange: [1, 0, 0, 1],
   });
-  const legFrames = LEG_FRAMES.map((_, i) => legFrameOpacity(riding, i));
+  const legFrames = kid.legFrames.map((_, i) => legFrameOpacity(riding, i));
   const hopUp = hop.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, -4 * scale, 0],
@@ -511,15 +500,15 @@ export function HillScene({
             {/* The kid on the bike */}
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: onBike }]}>
               {/* The legs: 4 drawings, shown one after another while riding (a flip-book). */}
-              {LEG_FRAMES.map((frame, i) => (
+              {kid.legFrames.map((frame, i) => (
                 <Animated.View key={i} style={[StyleSheet.absoluteFill, { opacity: legFrames[i] }]}>
                   <KidSvg shapes={frame} />
                 </Animated.View>
               ))}
-              <KidSvg shapes={RIDER_BODY} />
+              <KidSvg shapes={kid.riderBody} />
               {/* The arm on the handlebar... */}
               <Animated.View style={[StyleSheet.absoluteFill, { opacity: handlebarArm }]}>
-                <KidSvg shapes={HANDLEBAR_ARM} />
+                <KidSvg shapes={kid.handlebarArm} />
               </Animated.View>
               {/* ...or, halfway up, raised and waving. Its box turns around the shoulder. */}
               <Animated.View
@@ -535,10 +524,10 @@ export function HillScene({
                 }}
               >
                 <Svg width="100%" height="100%" viewBox="-2 -13 8 14">
-                  <Shapes shapes={WAVE_ARM} />
+                  <Shapes shapes={kid.waveArm} />
                 </Svg>
               </Animated.View>
-              <KidSvg shapes={RIDER_HEAD} />
+              <KidSvg shapes={kid.riderHead} />
             </Animated.View>
 
             {/* At the finish: off the bike, arms up, hopping, with confetti */}
@@ -546,7 +535,7 @@ export function HillScene({
               <Animated.View
                 style={[StyleSheet.absoluteFill, { transform: [{ translateY: hopUp }] }]}
               >
-                <KidSvg shapes={CHEER} />
+                <KidSvg shapes={kid.cheer} />
               </Animated.View>
               <Animated.View style={[StyleSheet.absoluteFill, { opacity: confettiBlink }]}>
                 <Svg width="100%" height="100%" viewBox={KID_VIEWBOX}>
@@ -562,14 +551,14 @@ export function HillScene({
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: resting }]}>
               {weather.isDay ? (
                 <>
-                  <KidSvg shapes={READ} />
+                  <KidSvg shapes={kid.read} />
                   <Animated.View style={[StyleSheet.absoluteFill, { opacity: pageTurn }]}>
                     <KidSvg shapes={PAGE_TURN} />
                   </Animated.View>
                 </>
               ) : (
                 <Svg width="100%" height="100%" viewBox={KID_VIEWBOX}>
-                  <Shapes shapes={REST} />
+                  <Shapes shapes={kid.rest} />
                   <SvgText fill={colors.ink} fontWeight="800" opacity={0.8}>
                     {ZZZ.map((z) => (
                       <TSpan key={z.x} x={z.x} y={z.y} fontSize={z.size}>
