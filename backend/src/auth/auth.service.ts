@@ -11,7 +11,7 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 
 // Cost factor: each +1 doubles the hashing time. 12 takes roughly 0.2 seconds.
-const BCRYPT_ROUNDS = 12;
+export const BCRYPT_ROUNDS = 12;
 
 // How long a login lasts: 7 days.
 const SESSION_DURATION_SECONDS = 7 * 24 * 60 * 60;
