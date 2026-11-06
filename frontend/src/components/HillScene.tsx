@@ -6,9 +6,10 @@ import {
   type Weather,
   type WeatherKind,
 } from '../journey/weather';
+import { accentColors } from '../accents';
 import { useAuth } from '../auth/auth-context';
 import {
-  BIKE,
+  bike,
   KIDS,
   PAGE_TURN,
   SHOULDER,
@@ -346,7 +347,7 @@ export function HillScene({
           >
             <Wheel cx={-9} color={colors.ink} />
             <Wheel cx={10} color={colors.ink} />
-            <Shapes shapes={BIKE} />
+            <Shapes shapes={bike(accentColors(user?.accent).bike)} />
 
             {/* The kid on the bike */}
             <g className="hill-rider-on">

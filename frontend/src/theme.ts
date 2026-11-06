@@ -1,6 +1,8 @@
 // Light or dark: "auto" follows the computer's setting; the others force one look.
 // The choice lives in this browser only. index.html applies it before the first paint.
 
+import { accentColors, type Accent } from './accents';
+
 export type ThemeChoice = 'auto' | 'light' | 'dark';
 
 const THEME_KEY = 'reset.theme';
@@ -12,6 +14,21 @@ export function getThemeChoice(): ThemeChoice {
   } catch {
     return 'auto'; // storage blocked (e.g. some private windows)
   }
+}
+
+/**
+ * Recolour the whole site in the account's colour (purple when logged out).
+ * index.css reads these variables for its light and dark accent colours.
+ */
+export function applyAccent(accent: Accent | undefined): void {
+  const { light, dark } = accentColors(accent);
+  const root = document.documentElement.style;
+  root.setProperty('--accent-light', light.accent);
+  root.setProperty('--accent-light-hover', light.hover);
+  root.setProperty('--accent-light-soft', light.soft);
+  root.setProperty('--accent-dark', dark.accent);
+  root.setProperty('--accent-dark-hover', dark.hover);
+  root.setProperty('--accent-dark-soft', dark.soft);
 }
 
 /** Switch the look straight away and remember it for next time. */

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router';
-import { browserTimeZone } from '../api/auth';
+import { browserTimeZone, type UserSettings } from '../api/auth';
 import { ApiError } from '../api/client';
 import {
   changeClimbLength,
@@ -13,10 +13,10 @@ import {
   ChangePasswordCard,
   DeleteAccountCard,
 } from '../components/AccountCards';
+import { AccentPicker } from '../components/AccentPicker';
 import { ClimberPicker } from '../components/ClimberPicker';
 import { ClimbPicker } from '../components/ClimbPicker';
 import { Segmented } from '../components/Segmented';
-import type { Climber } from '../journey/kid';
 import { getThemeChoice, setThemeChoice, type ThemeChoice } from '../theme';
 import { formatLongDate } from '../utils/dates';
 import './ProfilePage.css';
@@ -130,18 +130,20 @@ function TimeZoneNotice() {
   );
 }
 
-/** "Climber": the boy or the girl on the hills. Saved on the account. */
-function ClimberSetting() {
-  const { user, updateMe } = useAuth();
+/**
+ * Saves account settings (climber, colour) straight away, for the cards below.
+ * The whole site redraws with the change as soon as the server says OK.
+ */
+function useSaveSettings() {
+  const { updateMe } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  if (!user) return null;
 
-  async function handleChange(climber: Climber) {
+  async function save(changes: UserSettings) {
     setError(null);
     setIsSaving(true);
     try {
-      await updateMe({ climber }); // every hill redraws with the new climber
+      await updateMe(changes);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not save.');
     } finally {
@@ -149,19 +151,48 @@ function ClimberSetting() {
     }
   }
 
+  const errorBox = error && (
+    <p className="form-error" role="alert">
+      {error}
+    </p>
+  );
+  return { save, isSaving, errorBox };
+}
+
+/** "Climber": the boy or the girl on the hills. Saved on the account. */
+function ClimberSetting() {
+  const { user } = useAuth();
+  const { save, isSaving, errorBox } = useSaveSettings();
+  if (!user) return null;
+
   return (
     <section className="card profile-setting">
       <h3>Climber</h3>
       <ClimberPicker
         value={user.climber}
-        onChange={(climber) => void handleChange(climber)}
+        onChange={(climber) => void save({ climber })}
         disabled={isSaving}
       />
-      {error && (
-        <p className="form-error" role="alert">
-          {error}
-        </p>
-      )}
+      {errorBox}
+    </section>
+  );
+}
+
+/** "Colour": the app colour, for buttons, ticks and the bike. Saved on the account. */
+function AccentSetting() {
+  const { user } = useAuth();
+  const { save, isSaving, errorBox } = useSaveSettings();
+  if (!user) return null;
+
+  return (
+    <section className="card profile-setting">
+      <h3>Colour</h3>
+      <AccentPicker
+        value={user.accent}
+        onChange={(accent) => void save({ accent })}
+        disabled={isSaving}
+      />
+      {errorBox}
     </section>
   );
 }
@@ -231,6 +262,7 @@ export function ProfilePage() {
       <div className="col">
         <ClimbSetting />
         <ClimberSetting />
+        <AccentSetting />
         <ThemeSetting />
         <ChangePasswordCard />
 

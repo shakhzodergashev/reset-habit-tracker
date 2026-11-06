@@ -1,0 +1,28 @@
+.accent-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.accent-dot {
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  border: none;
+  border-radius: 50%;
+  color: #ffffff;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+/* The picked colour: a ring around it, in the page colour then the text colour. */
+.accent-dot[aria-checked='true'] {
+  box-shadow:
+    0 0 0 3px var(--color-bg),
+    0 0 0 5px var(--color-text);
+}
+
+.accent-dot:disabled {
+  cursor: default;
+}

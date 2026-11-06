@@ -43,7 +43,6 @@ const SKIN = '#f6c9a3';
 const SKIN_FAR = '#dfa883'; // the leg on the far side, a little darker
 const HAIR = '#5b3a29';
 const SHOE = '#2b2540';
-const FRAME = '#7c5cf0'; // the purple bike
 const FACE = '#3a2530';
 
 const line = (d: string, stroke: string, width: number): Shape => ({
@@ -113,9 +112,12 @@ function head(look: Look, x: number, y: number, face: Face): Shape[] {
 
 // ---------- the same for both climbers ----------
 
-/** The bike frame, seat and handlebar (the wheels are drawn on their own, to spin). */
-export const BIKE: Shape[] = [
-  line('M-9,-8 L0,-8 L-3,-18 Z M0,-8 L8,-19 L-3,-18 M8,-19 L10,-8', FRAME, 2.2),
+/**
+ * The bike frame, seat and handlebar (the wheels are drawn on their own, to spin).
+ * The frame is in the app colour the user picked.
+ */
+export const bike = (frame: string): Shape[] => [
+  line('M-9,-8 L0,-8 L-3,-18 Z M0,-8 L8,-19 L-3,-18 M8,-19 L10,-8', frame, 2.2),
   line('M-6,-19.5 L-0.5,-19.5', SHOE, 2.2), // seat
   line('M8,-19 L7,-22.5 L10.5,-23', SHOE, 1.8), // handlebar
 ];
