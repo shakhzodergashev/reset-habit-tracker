@@ -1,4 +1,5 @@
 // Account calls, the same as on the website. Shapes match what the backend sends.
+import type { Accent } from '../accents';
 import type { Climber } from '../journey/kid';
 import { apiRequest, saveToken } from './client';
 
@@ -7,6 +8,7 @@ export interface User {
   email: string;
   timeZone: string;
   climber: Climber; // who climbs the hill
+  accent: Accent; // the app colour
   createdAt: string;
 }
 
@@ -55,6 +57,7 @@ export function getMe(): Promise<User> {
 export interface UserSettings {
   timeZone?: string; // decides when your day starts and ends
   climber?: Climber;
+  accent?: Accent;
 }
 
 export function updateMe(changes: UserSettings): Promise<User> {

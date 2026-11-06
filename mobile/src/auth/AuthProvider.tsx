@@ -1,6 +1,7 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import * as authApi from '../api/auth';
 import { loadToken, onSessionEnded, saveToken } from '../api/client';
+import { setAccent } from '../theme';
 import { AuthContext } from './auth-context';
 
 /** Keeps track of who is logged in and shares it with every screen. */
@@ -22,6 +23,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .catch(() => saveToken(null)) // expired, logged out, or server unreachable: start fresh
       .finally(() => setIsChecking(false));
   }, []);
+
+  // The app wears the account's colour; purple again after logging out.
+  const accent = user?.accent;
+  useEffect(() => {
+    setAccent(accent);
+  }, [accent]);
 
   // Listen for "your session has ended" from apiRequest.
   useEffect(() => {

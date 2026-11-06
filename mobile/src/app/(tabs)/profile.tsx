@@ -2,17 +2,17 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { useCallback, useState, type ComponentProps } from 'react';
 import { Pressable, Text, View } from 'react-native';
-import { deviceTimeZone } from '@/api/auth';
+import { deviceTimeZone, type UserSettings } from '@/api/auth';
 import { ApiError } from '@/api/client';
 import { changeClimbLength, DEFAULT_CLIMB, getStats, startClimb } from '@/api/habits';
 import { useAuth } from '@/auth/auth-context';
+import { AccentPicker } from '@/components/AccentPicker';
 import { Button } from '@/components/Button';
 import { ClimberPicker } from '@/components/ClimberPicker';
 import { ClimbPicker } from '@/components/ClimbPicker';
 import { ChangePasswordCard, DeleteAccountCard } from '@/components/AccountCards';
 import { Segmented } from '@/components/Segmented';
 import { Card, ErrorBox, MutedText, TabScreen } from '@/components/ui';
-import type { Climber } from '@/journey/kid';
 import { getThemeChoice, radius, setThemeChoice, space, useTheme, type ThemeChoice } from '@/theme';
 import { formatLongDate } from '@/utils/dates';
 
@@ -114,19 +114,20 @@ function TimeZoneNotice() {
   );
 }
 
-/** "Climber": the boy or the girl on the hills. Saved on the account. */
-function ClimberSetting() {
-  const c = useTheme();
-  const { user, updateMe } = useAuth();
+/**
+ * Saves account settings (climber, colour) straight away, for the cards below.
+ * The whole app redraws with the change as soon as the server says OK.
+ */
+function useSaveSettings() {
+  const { updateMe } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
-  if (!user) return null;
 
-  async function handleChange(climber: Climber) {
+  async function save(changes: UserSettings) {
     setError(null);
     setIsSaving(true);
     try {
-      await updateMe({ climber }); // every hill redraws with the new climber
+      await updateMe(changes);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Could not save.');
     } finally {
@@ -134,15 +135,46 @@ function ClimberSetting() {
     }
   }
 
+  const errorBox = error && <ErrorBox message={error} />;
+  return { save, isSaving, errorBox };
+}
+
+/** "Climber": the boy or the girl on the hills. Saved on the account. */
+function ClimberSetting() {
+  const c = useTheme();
+  const { user } = useAuth();
+  const { save, isSaving, errorBox } = useSaveSettings();
+  if (!user) return null;
+
   return (
     <Card>
       <Text style={{ fontSize: 18, fontWeight: '700', color: c.text }}>Climber</Text>
       <ClimberPicker
         value={user.climber}
-        onChange={(climber) => void handleChange(climber)}
+        onChange={(climber) => void save({ climber })}
         disabled={isSaving}
       />
-      {error && <ErrorBox message={error} />}
+      {errorBox}
+    </Card>
+  );
+}
+
+/** "Colour": the app colour, for buttons, ticks and the bike. Saved on the account. */
+function AccentSetting() {
+  const c = useTheme();
+  const { user } = useAuth();
+  const { save, isSaving, errorBox } = useSaveSettings();
+  if (!user) return null;
+
+  return (
+    <Card>
+      <Text style={{ fontSize: 18, fontWeight: '700', color: c.text }}>Colour</Text>
+      <AccentPicker
+        value={user.accent}
+        onChange={(accent) => void save({ accent })}
+        disabled={isSaving}
+      />
+      {errorBox}
     </Card>
   );
 }
@@ -228,6 +260,7 @@ export default function ProfileScreen() {
       <TimeZoneNotice />
       <ClimbSetting />
       <ClimberSetting />
+      <AccentSetting />
       <ThemeSetting />
       <ChangePasswordCard />
 

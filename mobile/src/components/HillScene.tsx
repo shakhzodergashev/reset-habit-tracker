@@ -12,9 +12,10 @@ import Svg, {
   Text as SvgText,
   TSpan,
 } from 'react-native-svg';
+import { accentColors } from '../accents';
 import { useAuth } from '../auth/auth-context';
 import { FLAG, HEIGHT, KID_SCALE, riderAt, ROAD, WIDTH } from '../journey/hill';
-import { BIKE, KIDS, PAGE_TURN, SHOULDER, ZZZ, type Shape } from '../journey/kid';
+import { bike, KIDS, PAGE_TURN, SHOULDER, ZZZ, type Shape } from '../journey/kid';
 import { sceneColors, weatherLabel, type Weather, type WeatherKind } from '../journey/weather';
 
 // The cyclist lives in its own 64 x 60 box. The point where the wheels touch the road
@@ -495,7 +496,7 @@ export function HillScene({
             ))}
 
             {/* The bike frame, seat and handlebar */}
-            <KidSvg shapes={BIKE} />
+            <KidSvg shapes={bike(accentColors(user?.accent).bike)} />
 
             {/* The kid on the bike */}
             <Animated.View style={[StyleSheet.absoluteFill, { opacity: onBike }]}>
