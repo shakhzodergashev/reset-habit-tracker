@@ -16,6 +16,7 @@ model User {
   passwordHash String   @db.VarChar(100)
   timeZone     String   @default("UTC") @db.VarChar(64) // IANA name, e.g. "Asia/Tashkent"
   climber      String   @default("boy") @db.VarChar(8) // who climbs the hill: "boy" or "girl"
+  accent       String   @default("purple") @db.VarChar(10) // the app colour, e.g. "blue"
   createdAt    DateTime @default(now()) @db.Timestamptz(3)
 
   habits   Habit[]

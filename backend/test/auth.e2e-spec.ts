@@ -11,6 +11,7 @@ interface PublicUser {
   email: string;
   timeZone: string;
   climber: string;
+  accent: string;
   createdAt: string;
 }
 
@@ -72,6 +73,7 @@ describe('Accounts (e2e)', () => {
 
       expect(typeof body.accessToken).toBe('string');
       expect(Object.keys(body.user).sort()).toEqual([
+        'accent',
         'climber',
         'createdAt',
         'email',
@@ -276,6 +278,28 @@ describe('Accounts (e2e)', () => {
       expect(zones).toContain('Asia/Tashkent');
       expect(zones).toContain('UTC');
       expect(zones).toEqual([...zones].sort());
+    });
+
+    it('starts everyone with purple, and switches the colour', async () => {
+      const { accessToken, user } = await registerAli();
+      expect(user.accent).toBe('purple');
+
+      const res = await api()
+        .patch('/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ accent: 'blue' })
+        .expect(200);
+      expect((res.body as PublicUser).accent).toBe('blue');
+    });
+
+    it('rejects a colour that is not on the list', async () => {
+      const { accessToken } = await registerAli();
+
+      await api()
+        .patch('/me')
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({ accent: '#ff0000' })
+        .expect(400);
     });
 
     it('rejects a climber that is not boy or girl', async () => {

@@ -30,7 +30,11 @@ export class UsersService {
     return this.prisma.user.update({
       where: { id: userId },
       // Fields left out are not changed.
-      data: { timeZone: dto.timeZone, climber: dto.climber },
+      data: {
+        timeZone: dto.timeZone,
+        climber: dto.climber,
+        accent: dto.accent,
+      },
       select: PUBLIC_USER_FIELDS,
     });
   }
