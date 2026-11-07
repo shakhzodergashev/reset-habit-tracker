@@ -6,6 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { CompletionsModule } from './completions/completions.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { HabitsModule } from './habits/habits.module';
+import { HealthModule } from './health/health.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { StatsModule } from './stats/stats.module';
 import { UsersModule } from './users/users.module';
@@ -30,6 +31,7 @@ import { UsersModule } from './users/users.module';
     CompletionsModule,
     DashboardModule,
     StatsModule,
+    HealthModule,
   ],
   // ThrottlerGuard checks the limits on every request.
   providers: [{ provide: APP_GUARD, useClass: ThrottlerGuard }],

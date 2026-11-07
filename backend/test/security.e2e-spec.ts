@@ -23,6 +23,11 @@ describe('Security (e2e)', () => {
 
   const api = () => request(app.getHttpServer());
 
+  it('answers the health check without logging in', async () => {
+    const res = await api().get('/health').expect(200);
+    expect(res.body).toEqual({ status: 'ok' });
+  });
+
   it('sends security headers on every response', async () => {
     const res = await api().get('/me').expect(401);
     expect(res.headers['x-content-type-options']).toBe('nosniff');
