@@ -1,4 +1,4 @@
-import { Navigate, Route, Routes, useLocation } from 'react-router';
+import { Link, Navigate, Route, Routes, useLocation } from 'react-router';
 import { useAuth } from './auth/auth-context';
 import { RequireAuth } from './auth/RequireAuth';
 import { TabLayout } from './components/TabLayout';
@@ -10,7 +10,11 @@ import { HabitDetailPage } from './pages/HabitDetailPage';
 import { HabitsPage } from './pages/HabitsPage';
 import { InsightsPage } from './pages/InsightsPage';
 import { NewHabitPage } from './pages/NewHabitPage';
+import { NotFoundPage } from './pages/NotFoundPage';
+import { PrivacyPage } from './pages/PrivacyPage';
 import { ProfilePage } from './pages/ProfilePage';
+import { SupportPage } from './pages/SupportPage';
+import { TermsPage } from './pages/TermsPage';
 import { WelcomePage } from './pages/WelcomePage';
 import './App.css';
 
@@ -60,9 +64,19 @@ function App() {
         <Route path="/stats" element={<Navigate to="/insights" replace />} />
         <Route path="/login" element={<AuthPage mode="login" />} />
         <Route path="/register" element={<AuthPage mode="register" />} />
-        {/* Any other address: go home (which sends you to /login if needed). */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Open to everyone, logged in or not (Apple and the law ask for these). */}
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/support" element={<SupportPage />} />
+        {/* Any other address: say so, with a way back. */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
+
+      <footer className="app-footer">
+        <Link to="/privacy">Privacy</Link>
+        <Link to="/terms">Terms</Link>
+        <Link to="/support">Support</Link>
+      </footer>
     </main>
   );
 }
