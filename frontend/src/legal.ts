@@ -2,8 +2,7 @@
 // Change them here and every page follows.
 
 /** Where users write for help, privacy requests and data exports. */
-// TODO before launch: the real support address (a new inbox, not a personal one).
-export const SUPPORT_EMAIL = 'support@example.com';
+export const SUPPORT_EMAIL = 'resethabitapp@gmail.com';
 
 /** The date the policies last changed. Update it whenever their meaning changes. */
 export const POLICIES_UPDATED = '8 November 2026';
