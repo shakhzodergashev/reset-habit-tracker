@@ -163,8 +163,8 @@ export function DeleteAccountCard() {
     <section className="card account-card is-danger">
       <h3>Delete account</h3>
       <p>
-        This deletes your account and everything in it: habits, ticks, climbs
-        and streaks. It can't be undone.
+        This deletes your account and everything in it: habits, ticks and
+        streaks. It can't be undone.
       </p>
 
       {!isConfirming ? (

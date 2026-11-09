@@ -28,8 +28,8 @@ export function PrivacyPage() {
           app colour.
         </li>
         <li>
-          <strong>Your habits:</strong> their names, descriptions and emoji, the
-          days you ticked them, and your climbs.
+          <strong>Your habits:</strong> their names, descriptions and emoji, and
+          the days you ticked them.
         </li>
         <li>
           <strong>Your logins:</strong> when each login started and when it

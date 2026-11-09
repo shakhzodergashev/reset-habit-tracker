@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router';
 import { browserTimeZone } from '../api/auth';
 import { ApiError } from '../api/client';
-import { DEFAULT_CLIMB, startClimb } from '../api/stats';
 import { useAuth } from '../auth/auth-context';
 import { ClimberPicker } from '../components/ClimberPicker';
-import { ClimbPicker } from '../components/ClimbPicker';
 import { TimeZonePicker } from '../components/TimeZonePicker';
 import type { Climber } from '../journey/kid';
 
 /**
- * /welcome: shown once, right after creating an account. Pick your climber,
- * check your time zone, and choose your first climb.
+ * /welcome: shown once, right after creating an account. Pick your climber
+ * and check your time zone.
  */
 export function WelcomePage() {
   const navigate = useNavigate();
@@ -19,7 +17,6 @@ export function WelcomePage() {
   const [climber, setClimber] = useState<Climber>(user?.climber ?? 'boy');
   // Filled in from this computer when the account was made; checked here.
   const [timeZone, setTimeZone] = useState(user?.timeZone ?? browserTimeZone());
-  const [goalDays, setGoalDays] = useState(DEFAULT_CLIMB);
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -27,9 +24,7 @@ export function WelcomePage() {
     setError(null);
     setIsSaving(true);
     try {
-      // The time zone first: the climb starts on "today" in that zone.
       await updateMe({ climber, timeZone });
-      await startClimb(goalDays);
       navigate('/', { replace: true });
     } catch (err) {
       setError(
@@ -43,8 +38,8 @@ export function WelcomePage() {
     <section className="card welcome">
       <h2>Welcome to RESET 🚴</h2>
       <p>
-        Every day you complete your habits, your climber rides up the hill. A
-        few choices first; you can change them later in Profile.
+        Every habit you tick moves your climber up the day’s hill. Two quick
+        choices first; you can change them later in Profile.
       </p>
 
       <h3>Who climbs the hill?</h3>
@@ -62,13 +57,6 @@ export function WelcomePage() {
         disabled={isSaving}
       />
 
-      <h3>How long is your first climb?</h3>
-      <ClimbPicker
-        value={goalDays}
-        onChange={setGoalDays}
-        disabled={isSaving}
-      />
-
       {error && (
         <p className="form-error" role="alert">
           {error}
@@ -81,7 +69,7 @@ export function WelcomePage() {
         onClick={() => void handleStart()}
         disabled={isSaving}
       >
-        {isSaving ? 'Starting…' : 'Start climbing'}
+        {isSaving ? 'Saving…' : 'Let’s go'}
       </button>
     </section>
   );

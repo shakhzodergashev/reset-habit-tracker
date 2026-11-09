@@ -19,7 +19,7 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The Today tab: the week, today's climb (with the real weather) and your habits. */
+/** The Today tab: the week, today's hill (with the real weather) and your habits. */
 export function DashboardPage() {
   const weather = useWeather();
   const [dashboard, setDashboard] = useState<Dashboard | null>(null);

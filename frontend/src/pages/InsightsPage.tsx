@@ -3,7 +3,6 @@ import { ApiError } from '../api/client';
 import { getInsights, type InsightRange, type Insights } from '../api/insights';
 import { getStats, type Stats } from '../api/stats';
 import { BarChart } from '../components/BarChart';
-import { ClimbHill, StartClimbCard } from '../components/ClimbCard';
 import { HabitEmoji } from '../components/HabitEmoji';
 import { Icon } from '../components/Icon';
 import { Segmented } from '../components/Segmented';
@@ -34,9 +33,9 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The Insights tab: your climb, then this week / month / year in numbers. */
+/** The Insights tab: this week / month / year in numbers, then all-time numbers. */
 export function InsightsPage() {
-  const [stats, setStats] = useState<Stats | null>(null);
+  const [stats, setStats] = useState<Stats | null>(null); // all-time numbers
   const [range, setRange] = useState<InsightRange>('week');
   const [insights, setInsights] = useState<Insights | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -82,53 +81,15 @@ export function InsightsPage() {
     return <p className="status-message">Loading…</p>;
   }
 
+  // The numbers for the range picked (null while they load).
+  const shown = insights && insights.range === range ? insights : null;
+
   return (
-    // On wide screens: the climb on the left, this week / month / year on the right.
+    // On wide screens: the range and chart on the left, top habits and all time on the right.
     <div className="insights-page wide">
       <h2 className="insights-title">Insights</h2>
 
       <div className="two-col">
-        <div className="col">
-          {/* Your climb up the hill comes first. */}
-          {stats.climb ? (
-            // A new key per climb: the next climb starts on a fresh hill.
-            <ClimbHill key={stats.climb.startDate} climb={stats.climb} />
-          ) : (
-            <StartClimbCard
-              title="Choose your climb 🚴"
-              text="Pick how long your climb up the hill is. Days you have already done count too."
-              buttonLabel="Start climbing"
-              onStarted={setStats}
-            />
-          )}
-          {stats.climb?.isComplete && (
-            <StartClimbCard
-              title="Climb complete! 🎉"
-              text={`You climbed all ${stats.climb.goalDays} days. Ready for the next one?`}
-              buttonLabel="Start next climb"
-              onStarted={setStats}
-            />
-          )}
-
-          {/* All time, across every climb */}
-          <ul className="insights-tiles is-three">
-            <li className="card insights-tile is-small">
-              <strong>{stats.climbsCompleted}</strong>
-              <span>
-                {stats.climbsCompleted === 1 ? 'climb' : 'climbs'} completed
-              </span>
-            </li>
-            <li className="card insights-tile is-small">
-              <strong>{stats.perfectDays}</strong>
-              <span>perfect days</span>
-            </li>
-            <li className="card insights-tile is-small">
-              <strong>{stats.totalCompletions}</strong>
-              <span>habits ticked</span>
-            </li>
-          </ul>
-        </div>
-
         <div className="col">
           <Segmented
             label="Range"
@@ -137,7 +98,7 @@ export function InsightsPage() {
             onChange={setRange}
           />
 
-          {!insights || insights.range !== range ? (
+          {!shown ? (
             <p className="status-message">Loading…</p>
           ) : (
             <>
@@ -146,7 +107,7 @@ export function InsightsPage() {
                   <span className="insights-tile-icon is-flame">
                     <Icon name="flame" size={28} />
                   </span>
-                  <strong>{insights.dayStreak}</strong>
+                  <strong>{shown.dayStreak}</strong>
                   <span>Day streak</span>
                 </li>
                 <li className="card insights-tile">
@@ -154,9 +115,9 @@ export function InsightsPage() {
                     <Icon name="target" size={28} />
                   </span>
                   <strong>
-                    {insights.completionRate === null
+                    {shown.completionRate === null
                       ? '–'
-                      : `${insights.completionRate}%`}
+                      : `${shown.completionRate}%`}
                   </strong>
                   <span>{RANGE_WORD[range]} completion</span>
                 </li>
@@ -165,43 +126,66 @@ export function InsightsPage() {
               <section className="card insights-section">
                 <h3>Completion</h3>
                 <BarChart
-                  bars={insights.bars}
-                  highlight={currentBar(insights, stats.today)}
+                  bars={shown.bars}
+                  highlight={currentBar(shown, stats.today)}
                   showEvery={range === 'month' ? 5 : 1}
                 />
               </section>
-
-              <section className="insights-section">
-                <h3>Top habits</h3>
-                {insights.topHabits.length === 0 ? (
-                  <p className="insights-empty">
-                    Your habits will show up here once you have some.
-                  </p>
-                ) : (
-                  <ul className="card top-habits">
-                    {insights.topHabits.map((habit) => (
-                      <li key={habit.id}>
-                        <HabitEmoji
-                          emoji={habit.emoji}
-                          name={habit.name}
-                          size={36}
-                        />
-                        <span className="top-habit-text">
-                          <span className="top-habit-name">{habit.name}</span>
-                          <span className="top-habit-days">
-                            {habit.doneDays}/{habit.possibleDays} days
-                          </span>
-                        </span>
-                        <span className="top-habit-rate">
-                          {habit.rate === null ? '–' : `${habit.rate}%`}
-                        </span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </section>
             </>
           )}
+        </div>
+
+        <div className="col">
+          {shown && (
+            <section className="insights-section">
+              <h3>Top habits</h3>
+              {shown.topHabits.length === 0 ? (
+                <p className="insights-empty">
+                  Your habits will show up here once you have some.
+                </p>
+              ) : (
+                <ul className="card top-habits">
+                  {shown.topHabits.map((habit) => (
+                    <li key={habit.id}>
+                      <HabitEmoji
+                        emoji={habit.emoji}
+                        name={habit.name}
+                        size={36}
+                      />
+                      <span className="top-habit-text">
+                        <span className="top-habit-name">{habit.name}</span>
+                        <span className="top-habit-days">
+                          {habit.doneDays}/{habit.possibleDays} days
+                        </span>
+                      </span>
+                      <span className="top-habit-rate">
+                        {habit.rate === null ? '–' : `${habit.rate}%`}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </section>
+          )}
+
+          {/* Since you started, across every habit (archived ones too). */}
+          <section className="insights-section">
+            <h3>All time</h3>
+            <ul className="insights-tiles is-three">
+              <li className="card insights-tile is-small">
+                <strong>{stats.bestStreak}</strong>
+                <span>best streak</span>
+              </li>
+              <li className="card insights-tile is-small">
+                <strong>{stats.perfectDays}</strong>
+                <span>perfect days</span>
+              </li>
+              <li className="card insights-tile is-small">
+                <strong>{stats.totalCompletions}</strong>
+                <span>habits ticked</span>
+              </li>
+            </ul>
+          </section>
         </div>
       </div>
     </div>

@@ -98,7 +98,7 @@ export function EditHabitPage() {
       <HabitActionCard
         isDanger
         title="Delete habit"
-        explanation="Deletes the habit and all its ticks, for good. Your climb and insights will no longer count it. To keep its history, archive it instead."
+        explanation="Deletes the habit and all its ticks, for good. Your insights will no longer count it. To keep its history, archive it instead."
         question={
           <>
             Delete <strong>{habit.name}</strong> forever? This can’t be undone.

@@ -45,7 +45,7 @@ function App() {
       <Routes>
         {/* Pages for logged-in users only. RequireAuth guards them all. */}
         <Route element={<RequireAuth />}>
-          {/* Right after registering: choose a first climb (no tab bar yet). */}
+          {/* Right after registering: pick a climber and check the time zone (no tab bar yet). */}
           <Route path="/welcome" element={<WelcomePage />} />
           {/* TabLayout adds the bottom tab bar: Today, Habits, Insights, Profile. */}
           <Route element={<TabLayout />}>
