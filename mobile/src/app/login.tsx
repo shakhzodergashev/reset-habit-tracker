@@ -27,7 +27,7 @@ export default function LoginScreen() {
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Logged in: go to the dashboard, or, just after registering, to pick a first climb.
+  // Logged in: go to the dashboard, or, just after registering, to the Welcome screen.
   // (All hooks above run first, as React requires.)
   if (auth.user) {
     return <Redirect href={mode === 'register' ? '/welcome' : '/'} />;

@@ -88,7 +88,7 @@ function EditHabitContent() {
   function confirmDelete(current: Habit) {
     Alert.alert(
       `Delete “${current.name}” forever?`,
-      'All its ticks are deleted too, and your climb and insights stop counting it. This can’t be undone.',
+      'All its ticks are deleted too, and your insights stop counting it. This can’t be undone.',
       [
         { text: 'Keep habit', style: 'cancel' },
         {

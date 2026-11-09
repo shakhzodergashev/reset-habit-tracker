@@ -23,7 +23,7 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The Today tab: the week, today's climb (with the real weather) and your habits. */
+/** The Today tab: the week, today's hill (with the real weather) and your habits. */
 export default function TodayScreen() {
   const router = useRouter();
   const c = useTheme();

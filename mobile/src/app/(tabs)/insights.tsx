@@ -5,7 +5,6 @@ import { Text, View } from 'react-native';
 import { ApiError } from '@/api/client';
 import { getInsights, getStats, type InsightRange, type Insights, type Stats } from '@/api/habits';
 import { BarChart } from '@/components/BarChart';
-import { ClimbHill, StartClimbCard } from '@/components/ClimbCard';
 import { HabitEmoji } from '@/components/HabitEmoji';
 import { Segmented } from '@/components/Segmented';
 import { Card, ErrorBox, MutedText, TabScreen } from '@/components/ui';
@@ -36,7 +35,7 @@ function errorMessage(err: unknown, fallback: string): string {
   return err instanceof ApiError ? err.message : fallback;
 }
 
-/** The Insights tab: your climb, then this week / month / year in numbers. */
+/** The Insights tab: this week / month / year in numbers, then all-time numbers. */
 export default function InsightsScreen() {
   const c = useTheme();
   const [stats, setStats] = useState<Stats | null>(null);
@@ -52,7 +51,7 @@ export default function InsightsScreen() {
         .then((data) => {
           setStats(data);
           setError(null);
-          setVisit((n) => n + 1); // a fresh hill: the cyclist rides in again
+          setVisit((n) => n + 1); // and reload the week / month / year numbers
         })
         .catch((err: unknown) => setError(errorMessage(err, 'Could not load your stats.')));
     }, []),
@@ -73,8 +72,6 @@ export default function InsightsScreen() {
     };
   }, [range, visit]);
 
-  const climb = stats?.climb ?? null;
-
   return (
     <TabScreen title="Insights">
       {error ? (
@@ -83,27 +80,6 @@ export default function InsightsScreen() {
         <MutedText>Loading…</MutedText>
       ) : (
         <>
-          {/* Your climb up the hill comes first. */}
-          {climb ? (
-            // A new key per climb and per visit: a fresh hill each time.
-            <ClimbHill key={`${climb.startDate}-${visit}`} climb={climb} />
-          ) : (
-            <StartClimbCard
-              title="Choose your climb 🚴"
-              text="Pick how long your climb up the hill is. Days you have already done count too."
-              buttonLabel="Start climbing"
-              onStarted={setStats}
-            />
-          )}
-          {climb?.isComplete && (
-            <StartClimbCard
-              title="Climb complete! 🎉"
-              text={`You climbed all ${climb.goalDays} days. Ready for the next one?`}
-              buttonLabel="Start next climb"
-              onStarted={setStats}
-            />
-          )}
-
           <Segmented label="Range" options={RANGES} value={range} onChange={setRange} />
 
           {!insights || insights.range !== range ? (
@@ -178,12 +154,10 @@ export default function InsightsScreen() {
             </>
           )}
 
-          {/* All time, across every climb */}
+          {/* Since you started, across every habit (archived ones too). */}
+          <Text style={{ fontSize: 20, fontWeight: '700', color: c.text }}>All time</Text>
           <View style={{ flexDirection: 'row', gap: space[3] }}>
-            <SmallTile
-              value={String(stats.climbsCompleted)}
-              label={stats.climbsCompleted === 1 ? 'climb completed' : 'climbs completed'}
-            />
+            <SmallTile value={String(stats.bestStreak)} label="best streak" />
             <SmallTile value={String(stats.perfectDays)} label="perfect days" />
             <SmallTile value={String(stats.totalCompletions)} label="habits ticked" />
           </View>

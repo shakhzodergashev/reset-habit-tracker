@@ -147,7 +147,7 @@ export function DeleteAccountCard() {
     }
     Alert.alert(
       'Delete your account?',
-      'Your habits, ticks, climbs and streaks will be deleted for good. This can’t be undone.',
+      'Your habits, ticks and streaks will be deleted for good. This can’t be undone.',
       [
         { text: 'Keep my account', style: 'cancel' },
         { text: 'Delete forever', style: 'destructive', onPress: () => void reallyDelete() },
@@ -159,8 +159,8 @@ export function DeleteAccountCard() {
     <Card danger>
       <Text style={{ fontSize: 18, fontWeight: '700', color: c.danger }}>Delete account</Text>
       <MutedText>
-        This deletes your account and everything in it: habits, ticks, climbs and streaks. It can’t
-        be undone.
+        This deletes your account and everything in it: habits, ticks and streaks. It can’t be
+        undone.
       </MutedText>
 
       {!isConfirming ? (
