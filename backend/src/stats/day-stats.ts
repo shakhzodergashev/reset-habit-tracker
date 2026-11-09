@@ -1,6 +1,5 @@
-/** How long a climb up the journey hill can be, in days. The user picks one. */
-export const CLIMB_LENGTHS = [30, 66, 100, 365] as const;
-export type ClimbLength = (typeof CLIMB_LENGTHS)[number];
+// All-time day numbers for Insights, and the rule for which habits take part in
+// a day, which Insights uses too.
 
 /** A time the habit was archived (all dates "YYYY-MM-DD"). */
 export interface Pause {
@@ -37,54 +36,36 @@ export function takesPart(habit: PreparedHabit, date: string): boolean {
   );
 }
 
-export interface JourneyStats {
-  journeyDays: number; // how far up the hill, e.g. 12.75 (two decimals)
-  perfectDays: number; // days where every habit was done
+export interface DayStats {
+  perfectDays: number; // days where every habit taking part was done
   activeDays: number; // days where at least one habit was done
   totalCompletions: number;
 }
 
 /**
- * Each day is worth 1 journey day, shared by the habits that were part of it:
- * started, and not put away (between the day archived and the day restored).
- * A habit done on a day always takes part in it, even inside a pause.
- * With 4 habits, each one done that day adds 1/4; all 4 done = a full day.
- * Missed days add nothing and take nothing away. Dates after `today` are ignored,
- * and so are dates before `from` (the day a climb started), when it is given.
+ * Counts the days with ticks. A day is perfect when every habit taking part in
+ * it was done: started, and not put away (between the day archived and the day
+ * restored). A habit done on a day always takes part in it. Dates after
+ * `today` are ignored.
  */
-export function journeyStats(
-  habits: HabitHistory[],
-  today: string,
-  from?: string,
-): JourneyStats {
+export function dayStats(habits: HabitHistory[], today: string): DayStats {
   const prepared = habits.map(withDoneSet);
   const habitsOn = (date: string) =>
     prepared.filter((h) => takesPart(h, date)).length;
-  const isOn = takesPart;
 
   const doneOn = new Map<string, number>(); // date -> how many habits done that day
   for (const habit of prepared) {
     for (const date of habit.done) {
-      if (!isOn(habit, date) || date > today) continue;
-      if (from !== undefined && date < from) continue;
+      if (!takesPart(habit, date) || date > today) continue;
       doneOn.set(date, (doneOn.get(date) ?? 0) + 1);
     }
   }
 
-  let journey = 0;
   let perfectDays = 0;
   let totalCompletions = 0;
   for (const [date, done] of doneOn) {
-    const total = habitsOn(date);
-    journey += done / total;
-    if (done === total) perfectDays++;
+    if (done === habitsOn(date)) perfectDays++;
     totalCompletions += done;
   }
-
-  return {
-    journeyDays: Math.round(journey * 100) / 100,
-    perfectDays,
-    activeDays: doneOn.size,
-    totalCompletions,
-  };
+  return { perfectDays, activeDays: doneOn.size, totalCompletions };
 }

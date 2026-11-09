@@ -70,7 +70,7 @@ export class UsersService {
 
   /**
    * Deletes the account for good, after checking the password. The database
-   * removes everything that belongs to it too: habits, ticks, climbs, logins.
+   * removes everything that belongs to it too: habits, ticks, logins.
    */
   async deleteMe(userId: string, dto: DeleteMeDto): Promise<void> {
     await this.checkPassword(userId, dto.password);

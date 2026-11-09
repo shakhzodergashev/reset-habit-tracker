@@ -21,22 +21,6 @@ model User {
 
   habits   Habit[]
   sessions Session[]
-  climbs   Climb[]
-}
-
-/// A climb up the journey hill: the user picks how long it is, then each day they
-/// complete habits moves them up. When one is finished they can start the next.
-model Climb {
-  id         String    @id @default(uuid()) @db.Uuid
-  userId     String    @db.Uuid
-  goalDays   Int // 30, 66, 100 or 365
-  startDate  DateTime  @db.Date // the first day that counts (user's local date)
-  finishedOn DateTime? @db.Date // set when the user moves on to the next climb
-  createdAt  DateTime  @default(now()) @db.Timestamptz(3)
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@index([userId])
 }
 
 model Habit {

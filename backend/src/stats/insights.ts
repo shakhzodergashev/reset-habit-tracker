@@ -1,5 +1,5 @@
 import { addDays } from '../common/dates/dates';
-import { takesPart, withDoneSet, type HabitHistory } from './journey';
+import { takesPart, withDoneSet, type HabitHistory } from './day-stats';
 
 export const INSIGHT_RANGES = ['week', 'month', 'year'] as const;
 export type InsightRange = (typeof INSIGHT_RANGES)[number];
@@ -68,7 +68,7 @@ function percent(done: number, possible: number): number | null {
 /**
  * The numbers for the Insights tab, for this week, month or year.
  * Only days up to today count. A habit takes part in a day by the same rule
- * as the climb (started, and not put away), see takesPart().
+ * as perfect days (started, and not put away), see takesPart().
  */
 export function insights(
   habits: InsightHabit[],

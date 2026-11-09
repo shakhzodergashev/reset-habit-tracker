@@ -112,7 +112,7 @@ export class HabitsService {
 
   /**
    * Deletes the habit for good. Its ticks and pauses go with it (the database
-   * cascades), so it also stops counting in the climb and insights.
+   * cascades), so it also stops counting in Insights.
    */
   async remove(userId: string, habitId: string): Promise<void> {
     await this.findOwnedHabit(userId, habitId);

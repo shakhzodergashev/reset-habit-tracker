@@ -102,7 +102,6 @@ describe('Change password and delete account (e2e)', () => {
     it('deletes the account and everything in it', async () => {
       const token = await registerUser(app, EMAIL);
       await createBackdatedHabit(app, token, 'Read');
-      await api().post('/climbs').set(auth(token)).send({ goalDays: 66 });
       const bob = await registerUser(app, 'bob@example.com');
       await createBackdatedHabit(app, bob, 'Bob’s habit');
 
@@ -115,9 +114,8 @@ describe('Change password and delete account (e2e)', () => {
       // The login has ended, and the account can't log in any more.
       await api().get('/me').set(auth(token)).expect(401);
       await login(PASSWORD, 401);
-      // Ali's habits and climbs are gone; Bob's are untouched.
+      // Ali's habits are gone; Bob's are untouched.
       expect(await prisma.habit.count()).toBe(1);
-      expect(await prisma.climb.count()).toBe(0);
     });
 
     it('keeps the account when the password is wrong', async () => {
