@@ -35,7 +35,7 @@
   line-height: 1.15;
 }
 
-.insights-tile span:last-child {
+.insights-tile span:last-of-type {
   color: var(--color-text-muted);
 }
 
@@ -43,7 +43,7 @@
   font-size: 1.4rem;
 }
 
-.insights-tile.is-small span:last-child {
+.insights-tile.is-small span:last-of-type {
   font-size: 0.85rem;
 }
 
@@ -108,4 +108,84 @@
   color: var(--color-accent);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
+}
+
+/* ‹ October 2026 › under Week / Month / Year. */
+.period-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.period-nav .round-button {
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.period-nav .round-button:disabled {
+  opacity: 0.35;
+  cursor: default;
+  color: var(--color-text);
+  border-color: var(--color-border);
+}
+
+.period-label {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: center;
+}
+
+/* "▲ 12% vs last week" under the completion number; it appears just after
+   the number has rolled up. */
+.insights-trend {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  animation: trend-in 0.4s ease-out 0.5s both;
+}
+
+.insights-trend.is-up {
+  color: var(--color-up);
+}
+
+.insights-trend.is-down {
+  color: var(--color-danger);
+}
+
+/* The streak flame flickers gently, like a real one. */
+.insights-tile-icon.is-flame svg {
+  transform-origin: 50% 90%;
+  animation: flame-flicker 2.6s ease-in-out infinite;
+}
+
+@keyframes flame-flicker {
+  0%,
+  100% {
+    transform: scale(1) rotate(0deg);
+  }
+  25% {
+    transform: scale(1.08, 1.12) rotate(-3deg);
+  }
+  50% {
+    transform: scale(0.97, 1.03) rotate(2deg);
+  }
+  75% {
+    transform: scale(1.06, 1.1) rotate(-1deg);
+  }
+}
+
+@keyframes trend-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .insights-tile-icon.is-flame svg,
+  .insights-trend {
+    animation: none;
+  }
 }

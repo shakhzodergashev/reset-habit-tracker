@@ -19,6 +19,7 @@
   --color-on-accent: #ffffff; /* text on accent-coloured buttons */
   --color-danger: #b42318;
   --color-danger-soft: #fdecea;
+  --color-up: #15803d; /* "doing better" green */
   --color-on-danger: #ffffff;
 
   /* Type */
@@ -63,6 +64,7 @@
     --color-on-accent: #ffffff;
     --color-danger: #f38b7f;
     --color-danger-soft: #3a1d1a;
+    --color-up: #5fd08a;
     --color-on-danger: #0d1218;
     --shadow-card: none;
     color-scheme: dark; /* dark scrollbars and form controls too */
@@ -82,6 +84,7 @@
   --color-on-accent: #ffffff;
   --color-danger: #f38b7f;
   --color-danger-soft: #3a1d1a;
+  --color-up: #5fd08a;
   --color-on-danger: #0d1218;
   --shadow-card: none;
   color-scheme: dark;

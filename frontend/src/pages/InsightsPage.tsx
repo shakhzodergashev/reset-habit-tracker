@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { ApiError } from '../api/client';
 import { getInsights, type InsightRange, type Insights } from '../api/insights';
 import { getStats, type Stats } from '../api/stats';
-import { BarChart } from '../components/BarChart';
+import { CompletionChart } from '../components/CompletionChart';
+import { CountUp } from '../components/CountUp';
 import { HabitEmoji } from '../components/HabitEmoji';
 import { Icon } from '../components/Icon';
 import { Segmented } from '../components/Segmented';
@@ -21,8 +22,47 @@ const RANGE_WORD: Record<InsightRange, string> = {
   year: 'Yearly',
 };
 
-/** Which bar is today's (week, month) or this month's (year). */
+/** "3 Nov", "November 2026": a date (UTC midnight) in words. */
+const say = (date: string, options: Intl.DateTimeFormatOptions) =>
+  new Date(`${date}T00:00:00Z`).toLocaleDateString('en-GB', {
+    timeZone: 'UTC',
+    ...options,
+  });
+
+/** What the ‹ › arrows show: "This week", "27 Oct – 2 Nov", "October 2026", "2025". */
+function periodLabel(insights: Insights): string {
+  const { range, from, to, isCurrent } = insights;
+  if (range === 'year') return from.slice(0, 4);
+  if (range === 'month') return say(from, { month: 'long', year: 'numeric' });
+  if (isCurrent) return 'This week';
+  const short = { day: 'numeric', month: 'short' } as const;
+  return `${say(from, short)} – ${say(to, { ...short, year: 'numeric' })}`;
+}
+
+/**
+ * Up or down compared with the period before: "▲ 12% vs last week".
+ * Null when either period has nothing to count.
+ */
+function trend(insights: Insights): { text: string; direction: string } | null {
+  const {
+    completionRate: now,
+    previousRate: before,
+    range,
+    isCurrent,
+  } = insights;
+  if (now === null || before === null) return null;
+  const than = `${isCurrent ? 'last' : 'the previous'} ${range}`;
+  const change = now - before;
+  if (change === 0) return { text: `Same as ${than}`, direction: 'same' };
+  return {
+    text: `${change > 0 ? '▲' : '▼'} ${Math.abs(change)}% vs ${than}`,
+    direction: change > 0 ? 'up' : 'down',
+  };
+}
+
+/** Which bar is today's (week, month) or this month's (year); -1 for a past period. */
 function currentBar(insights: Insights, today: string): number {
+  if (!insights.isCurrent) return -1;
   if (insights.range === 'year') return Number(today.slice(5, 7)) - 1;
   let index = 0;
   for (let d = insights.from; d < today; d = addDays(d, 1)) index++;
@@ -37,6 +77,8 @@ function errorMessage(err: unknown, fallback: string): string {
 export function InsightsPage() {
   const [stats, setStats] = useState<Stats | null>(null); // all-time numbers
   const [range, setRange] = useState<InsightRange>('week');
+  // A day in the period shown; undefined = this week, month or year.
+  const [anchor, setAnchor] = useState<string | undefined>(undefined);
   const [insights, setInsights] = useState<Insights | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -54,10 +96,10 @@ export function InsightsPage() {
     };
   }, []);
 
-  // Load the numbers again whenever Week / Month / Year changes.
+  // Load the numbers again whenever Week / Month / Year or the period changes.
   useEffect(() => {
     let ignore = false;
-    getInsights(range)
+    getInsights(range, anchor)
       .then((data) => {
         if (!ignore) setInsights(data);
       })
@@ -68,7 +110,7 @@ export function InsightsPage() {
     return () => {
       ignore = true;
     };
-  }, [range]);
+  }, [range, anchor]);
 
   if (error) {
     return (
@@ -81,8 +123,16 @@ export function InsightsPage() {
     return <p className="status-message">Loading…</p>;
   }
 
-  // The numbers for the range picked (null while they load).
-  const shown = insights && insights.range === range ? insights : null;
+  // The numbers for the range and period picked (null while they load).
+  const shown =
+    insights &&
+    insights.range === range &&
+    (anchor === undefined
+      ? insights.isCurrent
+      : insights.from <= anchor && anchor <= insights.to)
+      ? insights
+      : null;
+  const change = shown && trend(shown); // up or down vs the period before
 
   return (
     // On wide screens: the range and chart on the left, top habits and all time on the right.
@@ -95,40 +145,83 @@ export function InsightsPage() {
             label="Range"
             options={RANGES}
             value={range}
-            onChange={setRange}
+            onChange={(next) => {
+              setRange(next);
+              setAnchor(undefined); // back to this week, month or year
+            }}
           />
 
           {!shown ? (
             <p className="status-message">Loading…</p>
           ) : (
             <>
+              {/* ‹ earlier period · later period › */}
+              <div className="period-nav">
+                <button
+                  type="button"
+                  className="round-button"
+                  onClick={() => setAnchor(addDays(shown.from, -1))}
+                  disabled={!shown.hasEarlier}
+                  aria-label="Earlier"
+                >
+                  ‹
+                </button>
+                <span className="period-label">{periodLabel(shown)}</span>
+                <button
+                  type="button"
+                  className="round-button"
+                  onClick={() => setAnchor(addDays(shown.to, 1))}
+                  disabled={shown.isCurrent}
+                  aria-label="Later"
+                >
+                  ›
+                </button>
+              </div>
+
               <ul className="insights-tiles">
                 <li className="card insights-tile">
                   <span className="insights-tile-icon is-flame">
                     <Icon name="flame" size={28} />
                   </span>
-                  <strong>{shown.dayStreak}</strong>
-                  <span>Day streak</span>
+                  {/* Today's streak; for a past period, its best run instead. */}
+                  <strong>
+                    <CountUp
+                      value={
+                        shown.isCurrent ? shown.dayStreak : shown.bestStreak
+                      }
+                    />
+                  </strong>
+                  <span>{shown.isCurrent ? 'Day streak' : 'Best streak'}</span>
                 </li>
                 <li className="card insights-tile">
                   <span className="insights-tile-icon">
                     <Icon name="target" size={28} />
                   </span>
                   <strong>
-                    {shown.completionRate === null
-                      ? '–'
-                      : `${shown.completionRate}%`}
+                    {shown.completionRate === null ? (
+                      '–'
+                    ) : (
+                      <CountUp value={shown.completionRate} suffix="%" />
+                    )}
                   </strong>
                   <span>{RANGE_WORD[range]} completion</span>
+                  {change && (
+                    <small className={`insights-trend is-${change.direction}`}>
+                      {change.text}
+                    </small>
+                  )}
                 </li>
               </ul>
 
               <section className="card insights-section">
                 <h3>Completion</h3>
-                <BarChart
+                <CompletionChart
+                  // A new chart per period, so a clicked day doesn't carry over.
+                  key={`${shown.range}-${shown.from}`}
                   bars={shown.bars}
                   highlight={currentBar(shown, stats.today)}
-                  showEvery={range === 'month' ? 5 : 1}
+                  dense={range === 'month'}
+                  initials={range === 'year'}
                 />
               </section>
             </>

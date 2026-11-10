@@ -1,62 +1,94 @@
-.bar-chart {
+.chart-wrap {
+  display: grid;
+  gap: var(--space-2);
+}
+
+/*
+  Two layers share the same box: the grid lines and the columns. Both leave
+  20px on top for the % labels and 22px at the bottom for the day labels, so
+  0% and 100% line up everywhere.
+*/
+.chart {
+  --chart-top: 20px;
+  --chart-bottom: 22px;
   display: grid;
   grid-template-columns: auto 1fr;
   gap: var(--space-2);
-  height: 190px;
+  height: 220px;
 }
 
 /* 100% ... 0% down the left side, lined up with the grid lines. */
-.bar-chart-axis {
+.chart-axis {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  padding-bottom: 22px; /* the height of the labels under the bars */
+  padding: var(--chart-top) 0 var(--chart-bottom);
   color: var(--color-text-muted);
   font-size: 0.75rem;
   line-height: 0;
 }
 
-.bar-chart-plot {
+.chart-plot {
   position: relative;
 }
 
-.bar-chart-grid {
+.chart-grid {
   position: absolute;
-  inset: 0 0 22px;
+  top: var(--chart-top);
+  bottom: var(--chart-bottom);
+  left: 0;
+  width: 100%;
+  height: calc(100% - var(--chart-top) - var(--chart-bottom));
+}
+
+.chart-grid {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
 }
 
-.bar-chart-grid span {
+.chart-grid span {
   border-top: 1px solid var(--color-border);
 }
 
-.bar-chart-bars {
+/* No gap between columns: each bar is narrower than its column. */
+.chart-columns {
   position: relative;
   list-style: none;
   margin: 0;
   padding: 0;
   height: 100%;
   display: flex;
-  gap: 4px;
 }
 
-.bar-chart-bars li {
+.chart-columns li {
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
 }
 
-.bar-chart-column {
+.chart-column {
+  position: relative;
   flex: 1;
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  margin-top: var(--chart-top);
+  /* reset the button look in month view */
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
 }
 
-.bar-chart-bar {
+button.chart-column {
+  cursor: pointer;
+}
+
+.chart-bar {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  translate: -50% 0;
   width: min(70%, 32px);
   border-radius: 8px 8px 3px 3px;
   background: var(--color-accent);
@@ -64,12 +96,31 @@
   transition: height 0.5s ease;
 }
 
-.is-current .bar-chart-bar {
+.is-current .chart-bar,
+.is-selected .chart-bar {
   opacity: 1;
 }
 
-.bar-chart-label {
-  height: 22px;
+/* The % above a bar. */
+.chart-value {
+  position: absolute;
+  left: 50%;
+  translate: -50% 0;
+  margin-bottom: 4px;
+  color: var(--color-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.is-current .chart-value,
+.is-selected .chart-value {
+  color: var(--color-text);
+}
+
+.chart-label {
+  height: var(--chart-bottom);
   padding-top: 4px;
   color: var(--color-text-muted);
   font-size: 0.75rem;
@@ -77,13 +128,19 @@
   white-space: nowrap;
 }
 
-.is-current .bar-chart-label {
+.is-current .chart-label {
   color: var(--color-text);
   font-weight: 700;
 }
 
+.chart-hint {
+  color: var(--color-text-muted);
+  font-size: 0.9rem;
+  text-align: center;
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .bar-chart-bar {
+  .chart-bar {
     transition: none;
   }
 }
