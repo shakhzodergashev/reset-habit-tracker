@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { fromDbDate, todayInTimeZone } from '../common/dates/dates';
 import { bestStreak } from '../habits/streak';
 import { PrismaService } from '../prisma/prisma.service';
@@ -24,10 +24,16 @@ export class StatsService {
     };
   }
 
-  /** The Insights tab: streak, completion, bars and top habits for this week, month or year. */
-  async insights(userId: string, range: InsightRange) {
+  /**
+   * The Insights tab: streak, completion, bars and top habits for the week,
+   * month or year that `date` is in (today when left out).
+   */
+  async insights(userId: string, range: InsightRange, date?: string) {
     const { today, history } = await this.load(userId);
-    return buildInsights(history, range, today);
+    if (date !== undefined && date > today) {
+      throw new BadRequestException('date cannot be in the future');
+    }
+    return buildInsights(history, range, today, date ?? today);
   }
 
   private async load(userId: string) {

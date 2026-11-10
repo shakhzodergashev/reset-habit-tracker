@@ -106,4 +106,46 @@ describe('insights', () => {
     expect(week.dayStreak).toBe(0);
     expect(week.topHabits).toEqual([]);
   });
+
+  it('shows an earlier week, with its own best streak', () => {
+    // The week before TODAY's: Mon 19 to Sun 25 October.
+    const habits = [
+      habit('Water', ['2026-10-19', '2026-10-20', '2026-10-22', TODAY]),
+    ];
+    const week = insights(habits, 'week', TODAY, '2026-10-21');
+    expect(week).toMatchObject({
+      from: '2026-10-19',
+      to: '2026-10-25',
+      isCurrent: false,
+      hasEarlier: true, // the habit started back in January
+      bestStreak: 2, // Mon and Tue
+      dayStreak: 1, // still today's streak
+    });
+    expect(week.bars.map((b) => b.rate)).toEqual([100, 100, 0, 100, 0, 0, 0]);
+  });
+
+  it('knows when there is nothing earlier to step back to', () => {
+    const habits = [habit('New', [TODAY], { startDate: '2026-10-27' })];
+    expect(insights(habits, 'week', TODAY)).toMatchObject({
+      isCurrent: true,
+      hasEarlier: false,
+    });
+    expect(insights(habits, 'year', TODAY).hasEarlier).toBe(false);
+  });
+
+  it('compares with the period before, to show up or down', () => {
+    // Last week (19-25 Oct): done every day = 100%. This week so far
+    // (Mon 26 to Thu 29): 2 of 4 days = 50%.
+    const last = ['19', '20', '21', '22', '23', '24', '25'];
+    const habits = [
+      habit('Water', [...last.map((d) => `2026-10-${d}`), '2026-10-26', TODAY]),
+    ];
+    expect(insights(habits, 'week', TODAY)).toMatchObject({
+      completionRate: 50,
+      previousRate: 100,
+    });
+    // Before the habit started there is nothing to compare with.
+    const fresh = [habit('New', [TODAY], { startDate: '2026-10-27' })];
+    expect(insights(fresh, 'week', TODAY).previousRate).toBeNull();
+  });
 });

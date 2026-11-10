@@ -221,6 +221,27 @@ describe('Stats and insights (e2e)', () => {
       await api().get('/insights?range=decade').set(auth()).expect(400);
     });
 
+    it('steps back to an earlier period, but not into the future', async () => {
+      const read = await createHabit('Read'); // started 10 days ago
+      await mark(read, daysAgo(7));
+
+      const lastWeek = await api()
+        .get(`/insights?range=week&date=${daysAgo(7)}`)
+        .set(auth())
+        .expect(200);
+      expect(lastWeek.body).toMatchObject({
+        isCurrent: false,
+        bestStreak: 1,
+        topHabits: [expect.objectContaining({ name: 'Read', doneDays: 1 })],
+      });
+
+      await api()
+        .get(`/insights?date=${addDays(today, 1)}`)
+        .set(auth())
+        .expect(400);
+      await api().get('/insights?date=2026-02-30').set(auth()).expect(400);
+    });
+
     it('requires login', async () => {
       await api().get('/insights').expect(401);
     });

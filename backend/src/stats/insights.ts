@@ -45,11 +45,11 @@ function datesBetween(from: string, to: string): string[] {
   return dates;
 }
 
-/** The first and last day of this week (Monday to Sunday), month or year. */
-export function rangeDates(range: InsightRange, today: string) {
-  const [year, month] = today.split('-');
+/** The first and last day of the week (Monday to Sunday), month or year that `date` is in. */
+export function rangeDates(range: InsightRange, date: string) {
+  const [year, month] = date.split('-');
   if (range === 'week') {
-    const monday = addDays(today, -weekdayIndex(today));
+    const monday = addDays(date, -weekdayIndex(date));
     return { from: monday, to: addDays(monday, 6) };
   }
   if (range === 'month') {
@@ -66,17 +66,18 @@ function percent(done: number, possible: number): number | null {
 }
 
 /**
- * The numbers for the Insights tab, for this week, month or year.
- * Only days up to today count. A habit takes part in a day by the same rule
+ * The numbers for the Insights tab, for the week, month or year that `date` is
+ * in (this one by default). Only days up to today count. A habit takes part in a day by the same rule
  * as perfect days (started, and not put away), see takesPart().
  */
 export function insights(
   habits: InsightHabit[],
   range: InsightRange,
   today: string,
+  date: string = today,
 ) {
   const prepared = habits.map(withDoneSet);
-  const { from, to } = rangeDates(range, today);
+  const { from, to } = rangeDates(range, date);
   const days = datesBetween(from, to < today ? to : today);
 
   /** How many habits could be done and were done, on these days. */
@@ -124,7 +125,19 @@ export function insights(
     day = addDays(day, -1);
   }
 
+  // The longest run of days in a row with a habit done, inside this period.
+  let bestStreak = 0;
+  let run = 0;
+  for (const date of days) {
+    run = anyDone(date) ? run + 1 : 0;
+    bestStreak = Math.max(bestStreak, run);
+  }
+
   const total = tally(days);
+
+  // The period just before (last week, month or year), to say "up" or "down".
+  const previous = rangeDates(range, addDays(from, -1));
+  const before = tally(datesBetween(previous.from, previous.to));
   const topHabits = prepared
     .filter((h) => !h.isArchived)
     .map((h) => {
@@ -144,8 +157,12 @@ export function insights(
     range,
     from,
     to,
+    isCurrent: from <= today && today <= to, // this week, month or year
+    hasEarlier: prepared.some((h) => h.startDate < from), // anything to step back to?
     dayStreak,
+    bestStreak,
     completionRate: percent(total.done, total.possible),
+    previousRate: percent(before.done, before.possible), // null = nothing to compare
     bars,
     topHabits,
   };
