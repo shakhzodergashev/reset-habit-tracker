@@ -87,17 +87,21 @@ export function RoundButton({
   label,
   onPress,
   children,
+  disabled = false,
 }: {
   label: string; // what VoiceOver says, e.g. "New habit"
   onPress: () => void;
   children: ReactNode;
+  disabled?: boolean; // faded, and can't be tapped
 }) {
   const c = useTheme();
   return (
     <Pressable
       onPress={onPress}
+      disabled={disabled}
       accessibilityRole="button"
       accessibilityLabel={label}
+      accessibilityState={{ disabled }}
       style={({ pressed }) => ({
         width: 44,
         height: 44,
@@ -107,7 +111,7 @@ export function RoundButton({
         backgroundColor: c.surface,
         borderWidth: 1,
         borderColor: c.border,
-        opacity: pressed ? 0.6 : 1,
+        opacity: disabled ? 0.35 : pressed ? 0.6 : 1,
       })}
     >
       {children}

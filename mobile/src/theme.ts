@@ -49,6 +49,7 @@ export interface ThemeColors {
   ringTrack: string; // the empty part of the progress ring
   danger: string;
   dangerSoft: string;
+  up: string; // "doing better" green
   streak: string; // the flame
 }
 
@@ -66,6 +67,7 @@ const light: ThemeColors = {
   ringTrack: '#ebebef',
   danger: '#b42318',
   dangerSoft: '#fdecea',
+  up: '#15803d',
   streak: '#f97316',
 };
 
@@ -83,6 +85,7 @@ const dark: ThemeColors = {
   ringTrack: '#303036',
   danger: '#f38b7f',
   dangerSoft: '#3a1d1a',
+  up: '#5fd08a',
   streak: '#fb923c',
 };
 
